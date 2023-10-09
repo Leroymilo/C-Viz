@@ -11,6 +11,7 @@ X, Y = 0, 0
 W, H = screen.get_width(), screen.get_height()
 M = 50   # zoom factor
 X0, Y0 = X-W/(2*M), Y-H/(2*M)
+K = 0.2
 
 def resize() -> None:
     global W
@@ -26,7 +27,7 @@ def map_xy2z(x: int, y: int) -> complex:
 
 def remap_lum(lum: float) -> float:
     # maps [0,+inf[ into [0, 1[
-    return 1 - e**(-lum)
+    return 1 - e**(-K * lum)
 
 def hl_to_rgb( h:float, l:float ) -> pg.Color:
     c = 1 - abs(2*l - 1)
