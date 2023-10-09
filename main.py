@@ -9,7 +9,7 @@ i = 1j
 
 X, Y = 0, 0
 W, H = screen.get_width(), screen.get_height()
-M = 5   # zoom factor
+M = 50   # zoom factor
 X0, Y0 = X-W/(2*M), Y-H/(2*M)
 
 def resize() -> None:
@@ -29,21 +29,20 @@ def remap_lum(lum: float) -> float:
     return 1 - e**(-lum)
 
 def hl_to_rgb( h:float, l:float ) -> pg.Color:
-    if h == 1.0: h = 0.0
-    i = int(h*6.0)
-    f = h*6.0 - i
-    
-    w = 0
-    q = int(255 * l * (1.0 - f))
-    t = int(255 * l * (1.0 - (1.0 - f)))
-    l = int(255 * l)
+    c = 1 - abs(2*l - 1)
+    h1 = h*6
+    x = c * (1 - abs(h1%2 - 1))
+    i = int(h1)%6
 
-    if i==0: return pg.Color(l, t, w)
-    if i==1: return pg.Color(q, l, w)
-    if i==2: return pg.Color(w, l, t)
-    if i==3: return pg.Color(w, q, l)
-    if i==4: return pg.Color(t, w, l)
-    if i==5: return pg.Color(l, w, q)
+    if i==0: r, g, b = c, x, 0
+    if i==1: r, g, b = x, c, 0
+    if i==2: r, g, b = 0, c, x
+    if i==3: r, g, b = 0, x, c
+    if i==4: r, g, b = x, 0, c
+    if i==5: r, g, b = c, 0, x
+
+    m = l - c/2
+    return pg.Color(*map(lambda v: int((v+m)*255), (r, g, b)))
 
 def update():
     max_l = 0

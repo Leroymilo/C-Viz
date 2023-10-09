@@ -1,4 +1,4 @@
-#version 100
+#version 330
 
 in vec2 uv;
 in vec2 size;
@@ -7,8 +7,8 @@ in float zoom;
 
 out vec4 color;
 
-vec2 f(vec2 z) {
-    
+void f(inout vec2 z) {
+    z = z*z*z;
 }
 
 void main() {
