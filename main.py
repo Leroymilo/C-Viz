@@ -55,7 +55,6 @@ def update():
             else:
                 h = phase(z)/(2*pi) + 0.5
                 l = remap_lum(abs(z))
-                max_l = max(max_l, l)
                 color = hl_to_rgb(h, l)
             screen.set_at((x, y), color)
     # print("max l :", max_l)
