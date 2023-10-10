@@ -18,10 +18,10 @@ clock = pg.time.Clock()
 
 quad_buffer = ctx.buffer(data=array('f', [
     # position (x, y), uv coords (x, y)
-    -1.0, 1.0, 0.0, 0.0,  # topleft
-    1.0, 1.0, 1.0, 0.0,   # topright
-    -1.0, -1.0, 0.0, 1.0, # bottomleft
-    1.0, -1.0, 1.0, 1.0,  # bottomright
+    -1.0, 1.0, -1.0, 1.0,  # topleft
+    1.0, 1.0, 1.0, 1.0,   # topright
+    -1.0, -1.0, -1.0, -1.0, # bottomleft
+    1.0, -1.0, 1.0, -1.0,  # bottomright
 ]))
 
 with open("vertex_shader.glsl") as f:
@@ -59,7 +59,8 @@ def render():
 def move(start, end):
     global X, Y
     dx, dy = end[0] - start[0], end[1] - start[1]
-    X, Y = X - dx, Y - dy
+    X, Y = X - dx, Y + dy
+    # y is reversed in screen coordinates
 
 params = {}
 mv_start = None

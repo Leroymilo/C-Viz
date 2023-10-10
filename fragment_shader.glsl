@@ -80,7 +80,7 @@ vec4 hl_to_rgb(float h, float l) {
 
 // main shader processing
 void main() {
-    vec2 uv1 = ((2*uvs-1) * size/2 + origin) / scale;
+    vec2 uv1 = (uvs * size/2 + origin) / scale;
     complex z = complex(uv1.x, uv1.y);
 
     z = f(z);
