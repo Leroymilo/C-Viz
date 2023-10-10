@@ -3,7 +3,7 @@ from function import f
 
 import pygame as pg
 
-screen = pg.display.set_mode((500, 500), pg.RESIZABLE)
+screen = pg.display.set_mode((800, 500), pg.RESIZABLE)
 
 i = 1j
 
