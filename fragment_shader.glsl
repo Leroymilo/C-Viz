@@ -1,6 +1,7 @@
 #version 450 core
 
 #define pi 3.1415926535897932384626433832795
+#define e 2.71828182845904523536028747135266250
 // #define complex vec2
 
 uniform vec2 origin;
@@ -21,15 +22,15 @@ complex conj(complex z) {
     return complex(z.x, -z.y);
 }
 
-float arg(complex z) {
+float c_arg(complex z) {
     return atan(z.y, z.x);
 }
 
-float modulus(complex z) {
+float c_abs(complex z) {
     return length(vec2(z.x, z.y));
 }
 
-complex plus(complex z1, complex z2) {
+complex add(complex z1, complex z2) {
     return complex(z1.x + z2.x, z1.y + z2.y);
 }
 
@@ -37,7 +38,7 @@ complex mult(complex z1, complex z2) {
     return complex(z1.x*z2.x - z1.y*z2.y, z1.x*z2.y + z1.y*z2.x);
 }
 
-complex inv(complex z) {
+complex c_inv(complex z) {
     complex c_z = conj(z);
     float d = (z.x*z.x + z.y*z.y);
     return complex(c_z.x/d, c_z.y/d);
@@ -47,14 +48,24 @@ complex div(complex z1, complex z2) {
     return mult(z1, inv(z2));
 }
 
-// complex exp(complex z) {
-//     return complex(exp(z.x)*cos(z.y), exp(z.x)*sin(z.y));
-// }
+complex c_exp(complex z) {
+    float r = exp(z.x);
+    float x = r*cos(z.y);
+    float y = r*sin(z.y);
+    return complex(x, y);
+}
 
 // actual function to render:
 complex f(complex z) {
-    complex z2 = mult(z, z);
-    return div(plus(z2, complex(-2, 0)), z2);
+    // f(z) = z²
+    return mult(z, z);
+
+    // // f(z) = e^z
+    // return c_exp(z);
+
+    // // f(z) = (z²-2)/z²
+    // complex z2 = mult(z, z);
+    // return div(plus(z2, complex(-2, 0)), z2);
 }
 
 vec4 hl_to_rgb(float h, float l) {

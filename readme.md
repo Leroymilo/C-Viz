@@ -29,3 +29,12 @@ There are 2 ways to use this tool : in python (slow but easier to write function
  - Run `python shaders.py`
 
 This version has zoom (with mouse wheel) and pan (click and drag) support!
+
+## Credits
+
+Most of Pygame OpenGL from [here](https://www.youtube.com/watch?v=LFbePt8i0DI&t=643s) (source code in description).
+
+Shader Code by myself.
+
+Most of the parser code from [here](https://github.com/davidcallanan/py-simple-math-interpreter/tree/master).
+I added support for constants, exponent, variables and functions.
