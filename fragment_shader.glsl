@@ -74,7 +74,7 @@ vec4 hl_to_rgb(float h, float l) {
         case 5: color = vec3(c, 0, x); break;
     }
 
-    return vec4((color + vec3(l - c/2)).xyz, 1);
+    return vec4((color + vec3(l - c/2)).rgb, 1);
     // r, g, b and a should be in [0, 1]
 }
 

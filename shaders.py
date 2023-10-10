@@ -6,8 +6,12 @@ import moderngl
 
 pg.init()
 
-screen = pg.display.set_mode((800, 600), pg.OPENGL | pg.DOUBLEBUF | pg.RESIZABLE)
-display = pg.Surface((800, 600))
+W, H = 500, 500
+X, Y = 0, 0
+Z = 1.7
+K = 0.2
+
+screen = pg.display.set_mode((W, H), pg.OPENGL | pg.DOUBLEBUF | pg.RESIZABLE)
 ctx = moderngl.create_context()
 
 clock = pg.time.Clock()
@@ -36,16 +40,13 @@ def surf_to_texture(surf: pg.Surface):
     tex.write(surf.get_view('1'))
     return tex
 
-def resize():
-    pass
-
 def render():
-    frame_tex = surf_to_texture(display)
+    frame_tex = surf_to_texture(screen)
     frame_tex.use(0)
-    params["origin"] = (0, 0)
-    params["size"] = screen.get_size()
-    params["scale"] = 100
-    params["lum_coef"] = 0.2
+    params["origin"] = (X, Y)
+    params["size"] = (W, H)
+    params["scale"] = 10 ** Z
+    params["lum_coef"] = K
     for key, value in params.items():
         if key in program:
             program[key] = value
@@ -54,12 +55,19 @@ def render():
     pg.display.flip()
     
     frame_tex.release()
-    print("rendered")
+
+def move(start, end):
+    global X, Y
+    dx, dy = end[0] - start[0], end[1] - start[1]
+    X, Y = X - dx, Y - dy
 
 params = {}
+mv_start = None
+
+render()
 
 while True:
-    display.fill((255, 255, 255))
+    screen.fill((255, 255, 255))
     
     for event in pg.event.get():
         if event.type == pg.QUIT:
@@ -67,11 +75,24 @@ while True:
             sys.exit()
             
         elif event.type == pg.VIDEORESIZE:
-            resize()
+            W, H = event.w, event.h
             render()
-
-        elif event.type == pg.VIDEOEXPOSE:  # handles window minimising/maximising
-            resize()
+        
+        elif event.type == pg.MOUSEWHEEL:
+            Z += 0.1 * event.y
+            render()
+        
+        elif event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
+            mv_start = event.pos
+        
+        elif event.type == pg.MOUSEBUTTONUP and event.button == 1:
+            move(mv_start, event.pos)
+            mv_start = None
+            render()
+        
+        elif event.type == pg.MOUSEMOTION and mv_start is not None:
+            move(mv_start, event.pos)
+            mv_start = event.pos
             render()
     
     clock.tick(60)
