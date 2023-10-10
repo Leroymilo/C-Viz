@@ -1,7 +1,8 @@
 #version 450 core
 
-#define pi 3.1415926535897932384626433832795
-#define e 2.71828182845904523536028747135266250
+#define pi      3.14159265358979311599796346854418516
+#define e       2.71828182845904523536028747135266250
+#define log10e  0.43429448190325176115678118549112696
 // #define complex vec2
 
 uniform vec2 origin;
@@ -18,54 +19,113 @@ struct complex {
 };
 
 // Complex functions
-complex conj(complex z) {
+complex c_re(complex z) {
+    return complex(z.x, 0);
+}
+
+complex c_im(complex z) {
+    return complex(z.y, 0);
+}
+
+complex c_conj(complex z) {
     return complex(z.x, -z.y);
 }
 
-float c_arg(complex z) {
-    return atan(z.y, z.x);
+complex c_arg(complex z) {
+    return complex(atan(z.y, z.x), 0);
 }
 
-float c_abs(complex z) {
-    return length(vec2(z.x, z.y));
+complex c_abs(complex z) {
+    return complex(length(vec2(z.x, z.y)), 0);
 }
 
-complex add(complex z1, complex z2) {
+complex c_rect(float r, float t) {
+    return complex(r * cos(t), r * sin(t));
+}
+
+complex c_add(complex z1, complex z2) {
     return complex(z1.x + z2.x, z1.y + z2.y);
 }
 
-complex mult(complex z1, complex z2) {
-    return complex(z1.x*z2.x - z1.y*z2.y, z1.x*z2.y + z1.y*z2.x);
+complex c_sub(complex z1, complex z2) {
+    return complex(z1.x - z2.x, z1.y - z2.y);
 }
 
 complex c_inv(complex z) {
-    complex c_z = conj(z);
+    complex c_z = c_conj(z);
     float d = (z.x*z.x + z.y*z.y);
     return complex(c_z.x/d, c_z.y/d);
 }
 
-complex div(complex z1, complex z2) {
-    return mult(z1, inv(z2));
+complex c_mult(complex z1, complex z2) {
+    return complex(z1.x*z2.x - z1.y*z2.y, z1.x*z2.y + z1.y*z2.x);
+}
+
+complex c_div(complex z1, complex z2) {
+    return c_mult(z1, c_inv(z2));
+}
+
+complex c_pow(complex z1, complex z2) {
+    float t1 = c_arg(z1).x;
+    return c_rect(c_abs(z1).x * exp(-z2.y*t1), z2.x*t1);
 }
 
 complex c_exp(complex z) {
-    float r = exp(z.x);
-    float x = r*cos(z.y);
-    float y = r*sin(z.y);
-    return complex(x, y);
+    return c_rect(exp(z.x), z.y);
 }
+
+complex c_log(complex z) {
+    return complex(log(c_abs(z).x), c_arg(z).x);
+}
+
+complex c_log10(complex z) {
+    return c_mult(complex(log10e, 0), c_log(z));
+}
+
+complex c_sqrt(complex z) {
+    return c_rect(sqrt(c_abs(z).x), c_arg(z).x/2);
+}
+
+complex c_sin(complex z) {
+    return complex(sin(z.x) * cosh(z.y), cos(z.x) * sinh(z.y));
+}
+
+complex c_cos(complex z) {
+    return complex(cos(z.x) * cosh(z.y), -sin(z.x) * sinh(z.y));
+}
+
+complex c_tan(complex z) {
+    return c_div(c_sin(z), c_cos(z));
+}
+
+// TODO : c_asin, c_acos and c_atan
+
+// complex c_sinh(complex z) {
+//     return ;
+// }
+
+// complex c_cosh(complex z) {
+//     return ;
+// }
+
+// complex c_tanh(complex z) {
+//     return ;
+// }
+
+// TODO : c_asinh, c_acosh and c_atanh
+
 
 // actual function to render:
 complex f(complex z) {
     // f(z) = z²
-    return mult(z, z);
+    return c_mult(z, z);
 
-    // // f(z) = e^z
-    // return c_exp(z);
+    // f(z) = e^z
+    return c_exp(z);
 
-    // // f(z) = (z²-2)/z²
-    // complex z2 = mult(z, z);
-    // return div(plus(z2, complex(-2, 0)), z2);
+    // f(z) = (z²-2)/z²
+    complex z2 = c_mult(z, z);
+    return c_div(c_add(z2, complex(-2, 0)), z2);
 }
 
 vec4 hl_to_rgb(float h, float l) {
@@ -96,13 +156,8 @@ void main() {
 
     z = f(z);
 
-    float h = arg(z) / (2*pi) + 0.5;
-    float l = 1 - exp( -lum_coef * modulus(z));
+    float h = c_arg(z).x / (2*pi) + 0.5;
+    float l = 1 - exp( -lum_coef * c_abs(z).x);
 
     f_color = hl_to_rgb(h, l);
 }
-
-// void main() {
-//     vec2 sample_pos = vec2(uvs.x + sin(uvs.y * 10 + time * 0.01) * 0.1, uvs.y);
-//     f_color = vec4(texture(tex, sample_pos).rg, texture(tex, sample_pos).b * 1.5, 1.0);
-// }

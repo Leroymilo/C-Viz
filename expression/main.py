@@ -36,10 +36,16 @@ def simplify_tree(tree: Node, strength: int = 0) -> Node:
 
 if __name__ == "__main__":
     while True:
-        expression = input("expression >")
-        tokens = [token for token in Lexer(expression).generate_tokens()]
-        # print(*tokens)
-        tree = Parser(tokens).parse()
-        print(tree)
-        tree = simplify_tree(tree, 1)
-        print(tree)
+        try:
+            expression = input("f(z) = ")
+            tokens = [token for token in Lexer(expression).generate_tokens()]
+            # print(*tokens)
+            tree = Parser(tokens).parse()
+            print("Verify your expression in python :", tree)
+            tree = simplify_tree(tree, 1)
+            print("GLSL translation to use in shader :", tree.glsl())
+
+        except Exception as e:
+            print(e)
+            continue
+        break
