@@ -27,3 +27,5 @@ There are 2 ways to use this tool : in python (slow but easier to write function
  Values with undefined result should show white on the resulting image.
  - Activate the virtual environment (see **Setup**).
  - Run `python shaders.py`
+
+This version has zoom (with mouse wheel) and pan (click and drag) support!
