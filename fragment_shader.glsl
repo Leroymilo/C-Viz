@@ -98,21 +98,49 @@ complex c_tan(complex z) {
     return c_div(c_sin(z), c_cos(z));
 }
 
-// TODO : c_asin, c_acos and c_atan
+complex c_asin(complex z) {
+    complex root = c_sqrt(c_sub(complex(1.0, 0.0), c_mult(z,z)));
+    return c_mult(complex(0, -1), c_log(c_add(complex(-z.y, z.x), root)));
+}
 
-// complex c_sinh(complex z) {
-//     return ;
-// }
+complex c_acos(complex z) {
+    complex root = c_sqrt(c_sub(c_mult(z,z), complex(1, 0)));
+    return c_mult(complex(0, -1), c_log(c_add(z, root)));
+}
 
-// complex c_cosh(complex z) {
-//     return ;
-// }
+complex c_atan(complex z) {
+    float d = z.x * z.x + z.y * z.y - 2 * z.y + 1;
+    float x = 1 - z.x * z.x - z.y * z.y;
+    return c_mult(complex(0, 0.5), c_log(complex(x/d, -2 * z.x / d)));
+}
 
-// complex c_tanh(complex z) {
-//     return ;
-// }
+complex c_sinh(complex z) {
+    return complex(sinh(z.x) * cos(z.y), cosh(z.x) * sin(z.y));
+}
 
-// TODO : c_asinh, c_acosh and c_atanh
+complex c_cosh(complex z) {
+    return complex(cosh(z.x) * cos(z.y), sinh(z.x) * sin(z.y));
+}
+
+complex c_tanh(complex z) {
+    return c_div(c_sinh(z), c_cosh(z));
+}
+
+complex c_asinh(complex z) {
+    complex z2 = complex(z.x * z.x - z.y * z.y, 2 * z.x * z.y);
+    return c_log(c_add(z, c_sqrt(complex(z2.x + 1, z2.y))));
+}
+
+complex c_acosh(complex z) {
+    complex z2 = complex(z.x * z.x - z.y * z.y, 2 * z.x * z.y);
+    return c_log(c_add(z, c_sqrt(complex(z2.x - 1, z2.y))));
+}
+
+complex c_atanh(complex z) {
+    float d = z.x * z.x + z.y * z.y - 2 * z.x + 1;
+    float x = 1 - z.x * z.x - z.y * z.y;
+    return c_mult(complex(0.5, 0), c_log(complex(x/d, 2 * z.y / d)));
+}
 
 
 // actual function to render:

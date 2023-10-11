@@ -27,7 +27,7 @@ def map_xy2z(x: int, y: int) -> complex:
 
 def remap_lum(lum: float) -> float:
     # maps [0,+inf[ into [0, 1[
-    return 1 - e**(-K * lum)
+    return lum / (1+lum)
 
 def hl_to_rgb( h:float, l:float ) -> pg.Color:
     c = 1 - abs(2*l - 1)
@@ -46,12 +46,11 @@ def hl_to_rgb( h:float, l:float ) -> pg.Color:
     return pg.Color(*map(lambda v: int((v+m)*255), (r, g, b)))
 
 def update():
-    max_l = 0
     for x in range(W):
         for y in range(H):
             z = f(map_xy2z(x, y))
             if not z:
-                color = pg.Color(0, 0, 0, 0)
+                color = pg.Color(255, 255, 255)
             else:
                 h = phase(z)/(2*pi) + 0.5
                 l = remap_lum(abs(z))

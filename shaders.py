@@ -65,8 +65,7 @@ def move(start, end):
 
 params = {}
 mv_start = None
-
-render()
+updated = True
 
 while True:
     screen.fill((255, 255, 255))
@@ -78,11 +77,11 @@ while True:
             
         elif event.type == pg.VIDEORESIZE:
             W, H = event.w, event.h
-            render()
+            updated = True
         
         elif event.type == pg.MOUSEWHEEL:
             Z += 0.1 * event.y
-            render()
+            updated = True
         
         elif event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
             mv_start = event.pos
@@ -90,12 +89,14 @@ while True:
         elif event.type == pg.MOUSEBUTTONUP and event.button == 1:
             move(mv_start, event.pos)
             mv_start = None
-            render()
+            updated = True
         
         elif event.type == pg.MOUSEMOTION and mv_start is not None:
             move(mv_start, event.pos)
             mv_start = event.pos
-            render()
+            updated = True
     
+    if updated:
+        render()
+        updated = False
     clock.tick(60)
-    
