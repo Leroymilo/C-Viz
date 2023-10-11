@@ -75,7 +75,7 @@ def render(program: moderngl.Program, render_object: moderngl.VertexArray):
         if key in program:
             program[key] = value
     
-    # render_object.render(mode=moderngl.TRIANGLE_STRIP)
+    render_object.render(mode=moderngl.TRIANGLE_STRIP)
     pg.display.flip()
     frame_tex.release()
 
