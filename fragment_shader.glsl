@@ -117,11 +117,11 @@ complex c_tan(complex z) {
 
 // actual function to render:
 complex f(complex z) {
-    // f(z) = z²
-    return c_mult(z, z);
+    // // f(z) = z²
+    // return c_mult(z, z);
 
-    // f(z) = e^z
-    return c_exp(z);
+    // // f(z) = e^z
+    // return c_exp(z);
 
     // f(z) = (z²-2)/z²
     complex z2 = c_mult(z, z);
@@ -151,13 +151,15 @@ vec4 hl_to_rgb(float h, float l) {
 
 // main shader processing
 void main() {
-    vec2 uv1 = (uvs * size/2 + origin) / scale;
+    vec2 uv1 = uvs * size/2 / scale + origin;
     complex z = complex(uv1.x, uv1.y);
 
     z = f(z);
 
     float h = c_arg(z).x / (2*pi) + 0.5;
-    float l = 1 - exp( -lum_coef * c_abs(z).x);
+    float l = c_abs(z).x;
+    // l = 1 - exp( -lum_coef * l);
+    l = l / (l + 1);
 
     f_color = hl_to_rgb(h, l);
 }

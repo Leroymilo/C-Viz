@@ -58,7 +58,8 @@ def render():
 
 def move(start, end):
     global X, Y
-    dx, dy = end[0] - start[0], end[1] - start[1]
+    scale = 10 ** Z
+    dx, dy = (end[0] - start[0]) / scale, (end[1] - start[1]) / scale
     X, Y = X - dx, Y + dy
     # y is reversed in screen coordinates
 
