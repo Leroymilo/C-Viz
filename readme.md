@@ -12,28 +12,21 @@ In your terminal :
 
 ## Usage
 
-There are 2 ways to use this tool : in python (slow but easier to write function), or in glsl (verry fast but all complex functions have to be redefined).
-
-### Python
-
  - Activate the virtual environment (see **Setup**).
- - Write the function you want to plot in `function.py`, the [cmath](https://docs.python.org/3/library/cmath.html) package is imported for access to functions.</br>
- Maths errors should be handled but you should return None when f(z) is not defined to avoid errors.
- - Run `python main.py`
-
-### GLSL
-
- - Activate the virtual environment (see **Setup**).
- - Write the function you want to plot in `vertex_shader.glsl`, be careful : all operations are replaced with a function (`c_add` for addition, `c_mult` for multiplication, ...) and all usual functions have not been completed (inverse trigonometric functions and hyperbolic functions are wip).</br>
- Values with undefined result should show white on the resulting image.</br>
- There is a tool to convert your expression in glsl shader code :
-    - Run `python expression/main.py`
-    - Write your expression in the terminal (complete `f(z) = `) (exponentiation is noted with `^` instead of the pythonic `**`).
+ - Run `python shaders.py`.
+ - Write the function you want to plot in `function.txt`, here are some pointers :
+    - The case (UPPER or Lower) does not matter.
+    - Exponentiation is noted with `^`.
     - You can use `z`, `x` as `Re(z)`, `y` as `Im(z)`, `r` as `|z|` and `t` as `arg(z)` as variables (instead of having to call functions of `z`).
-    - You can use the constants `pi` and `e`.
- - Run `python shaders.py`
+    - You can use the constants `i`, `j`, `pi` and `e`.
+    - Most usual complex functions are available : abs (modulus), arg, conj (conjugate), exp, log (natural logarithm), log10, sqrt, sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh
 
-This version has zoom (with mouse wheel) and pan (click and drag) support!
+### Controls :
+
+ - Mouse wheel to zoom in and out.
+ - Left click and drag to move the complex plane.
+ - Space bar to reset zoom and position.
+ - Return/Enter (new line key) to reload the function
 
 ## Credits
 

@@ -1,5 +1,5 @@
-from tokens import Token, TokenType
-from functions import FUNCS
+from expression.tokens import Token, TokenType
+from expression.functions import FUNCS
 
 WHITESPACE = " \n\t"
 DIGITS = "0123456789"

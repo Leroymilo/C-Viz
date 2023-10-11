@@ -4,6 +4,7 @@ from array import array
 import pygame as pg
 import moderngl
 
+from expression.main import parse_expression, simplify_tree
 
 # Parameters (TODO : put all this in a class some day)
 
@@ -11,7 +12,6 @@ MINW, MINH = 500, 500
 W, H = 800, 500
 X, Y = 0, 0
 Z = 1.7
-K = 0.2
 
 
 # Pygame Init
@@ -39,8 +39,13 @@ def compile() -> tuple[moderngl.Program, moderngl.VertexArray]:
     with open("vertex_shader.glsl") as f:
         vert_shader = f.read()
 
+    with open("function.txt") as f:
+        expression = f.read().lower()
+    
+    tree = parse_expression(expression)
+    glsl_expression = simplify_tree(tree, 1).glsl()
     with open("fragment_shader.glsl") as f:
-        frag_shader = f.read()
+        frag_shader = f.read().replace("FUNCTION", glsl_expression)
 
     program = ctx.program(vertex_shader=vert_shader, fragment_shader=frag_shader)
     render_object = ctx.vertex_array(program, [(quad_buffer, '2f 2f', 'vert', 'texcoord')])
@@ -60,7 +65,6 @@ def render(program: moderngl.Program, render_object: moderngl.VertexArray):
     params["origin"] = (X, Y)
     params["size"] = (W, H)
     params["scale"] = 10 ** Z
-    params["lum_coef"] = K
     for key, value in params.items():
         if key in program:
             program[key] = value
@@ -126,7 +130,15 @@ if __name__ == "__main__":
                 move(mv_start, event.pos)
                 mv_start = event.pos
                 updated = True
-
+            
+            elif event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
+                program, render_object = compile()
+                updated = True
+            
+            elif event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+                X, Y = 0, 0
+                Z = 1.7
+                updated = True
 
         if updated:
             render(program, render_object)

@@ -8,9 +8,8 @@
 uniform vec2 origin;
 uniform vec2 size;
 uniform float scale;
-uniform float lum_coef;
 
-uniform sampler2D tex;
+// uniform sampler2D tex;
 
 in vec2 uvs;
 out vec4 f_color;
@@ -147,15 +146,17 @@ complex c_atanh(complex z) {
 
 // actual function to render:
 complex f(complex z) {
+    return FUNCTION;
+
     // // f(z) = z²
     // return c_mult(z, z);
 
     // // f(z) = e^z
     // return c_exp(z);
 
-    // f(z) = (z²-2)/z²
-    complex z2 = c_mult(z, z);
-    return c_div(c_add(z2, complex(-2, 0)), z2);
+    // // f(z) = (z²-2)/z²
+    // complex z2 = c_mult(z, z);
+    // return c_div(c_add(z2, complex(-2, 0)), z2);
 }
 
 vec4 hl_to_rgb(float h, float l) {
@@ -191,7 +192,6 @@ void main() {
 
         float h = c_arg(z).x / (2*pi) + 0.5;
         float l = c_abs(z).x;
-        // l = 1 - exp( -lum_coef * l);
         l = l / (l + 1);
         f_color = hl_to_rgb(h, l);
     // }
