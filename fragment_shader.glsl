@@ -10,6 +10,8 @@ uniform vec2 size;
 uniform float scale;
 uniform float lum_coef;
 
+uniform sampler2D tex;
+
 in vec2 uvs;
 out vec4 f_color;
 
@@ -179,15 +181,22 @@ vec4 hl_to_rgb(float h, float l) {
 
 // main shader processing
 void main() {
-    vec2 uv1 = uvs * size/2 / scale + origin;
-    complex z = complex(uv1.x, uv1.y);
+    // vec2 texuvs = vec2(-0.5, -0.5) + uvs * vec2(1, -1) / 2;
+    // if (texture(tex, texuvs).rgb == vec3(1, 1, 1)) {
+        // Rendering the function
+        vec2 uv1 = uvs * size/2 / scale + origin;
+        complex z = complex(uv1.x, uv1.y);
 
-    z = f(z);
+        z = f(z);
 
-    float h = c_arg(z).x / (2*pi) + 0.5;
-    float l = c_abs(z).x;
-    // l = 1 - exp( -lum_coef * l);
-    l = l / (l + 1);
-
-    f_color = hl_to_rgb(h, l);
+        float h = c_arg(z).x / (2*pi) + 0.5;
+        float l = c_abs(z).x;
+        // l = 1 - exp( -lum_coef * l);
+        l = l / (l + 1);
+        f_color = hl_to_rgb(h, l);
+    // }
+    // else {
+    //     // Rendering GUI
+    //     f_color = vec4(texture(tex, texuvs));
+    // }
 }

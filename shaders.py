@@ -2,14 +2,13 @@ import sys
 from array import array
 
 import pygame as pg
-import pygame_gui as pgg
 import moderngl
 
 
 # Parameters (TODO : put all this in a class some day)
 
 MINW, MINH = 500, 500
-W, H = 500, 500
+W, H = 800, 500
 X, Y = 0, 0
 Z = 1.7
 K = 0.2
@@ -19,13 +18,7 @@ K = 0.2
 
 pg.init()
 screen = pg.display.set_mode((W, H), pg.OPENGL | pg.DOUBLEBUF | pg.RESIZABLE)
-gui_surf = pg.Surface((W, H), pg.RESIZABLE)
 clock = pg.time.Clock()
-manager = pgg.UIManager((W, H))
-hello_button = pgg.elements.UIButton(
-    relative_rect=pg.Rect((350, 275), (100, 50)),
-    text='Say Hello',
-    manager=manager)
 
 
 # ModernGL Init
@@ -61,11 +54,8 @@ def surf_to_texture(surf: pg.Surface):
     return tex
 
 def render(program: moderngl.Program, render_object: moderngl.VertexArray):
-    screen.fill((255, 255, 255))
-
-    render_ui()
-    frame_tex = surf_to_texture(screen)
-    frame_tex.use(0)
+    # frame_tex = surf_to_texture(gui_surf)
+    # frame_tex.use(0)
     
     params["origin"] = (X, Y)
     params["size"] = (W, H)
@@ -77,11 +67,7 @@ def render(program: moderngl.Program, render_object: moderngl.VertexArray):
     
     render_object.render(mode=moderngl.TRIANGLE_STRIP)
     pg.display.flip()
-    frame_tex.release()
-
-
-def render_ui():
-    manager.draw_ui(screen)
+    # frame_tex.release()
 
 
 # User Actions
@@ -96,11 +82,12 @@ def move(start, end):
 
 def resize(new_w, new_h):
     global W, H
-    global screen, render_surf, manager
-    W = max(MINW, new_w)
-    H = max(MINH, new_h)
-    screen = pg.display.set_mode((W, H), pg.OPENGL | pg.DOUBLEBUF | pg.RESIZABLE)
-    manager.set_window_resolution((W, H))
+    global screen
+    # Cannot limit resize for some reason : pg.display.set_mode janks out
+    # W = max(MINW, new_w)
+    # H = max(MINH, new_h)
+    # screen = pg.display.set_mode((W, H), pg.OPENGL | pg.DOUBLEBUF | pg.RESIZABLE
+    W, H = new_w, new_h
 
 
 if __name__ == "__main__":
@@ -120,16 +107,12 @@ if __name__ == "__main__":
                 sys.exit()
                 
             elif event.type == pg.VIDEORESIZE:
-                resize(event.w, event.h)
+                resize(*event.size)
                 updated = True
             
             elif event.type == pg.MOUSEWHEEL:
                 Z += 0.1 * event.y
                 updated = True
-            
-            elif event.type == pgg.UI_BUTTON_PRESSED:
-                if event.ui_element == hello_button:
-                    print('Hello World!')
             
             elif event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
                 mv_start = event.pos
@@ -143,10 +126,6 @@ if __name__ == "__main__":
                 move(mv_start, event.pos)
                 mv_start = event.pos
                 updated = True
-            
-            manager.process_events(event)
-        
-        manager.update(time_delta)
 
 
         if updated:
