@@ -21,6 +21,17 @@ void main() {
 
     z = f(z);
 
+    if (isinf(z.x) && isinf(z.y)) {
+        f_color = vec4(1);
+        return;
+    }
+
+    if (isnan(z.x) || isnan(z.y)) {
+        vec2 uv2 = floor(uvs * size / 20);
+        f_color = vec4(0.4) + vec4(0.2) * (mod(uv2.x + uv2.y,2f));
+        return;
+    }
+
     float h = c_arg(z).x;
     float l = c_abs(z).x;
     float l_ = clamp(l / (l + 1), 0f, 0.999999);    
