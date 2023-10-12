@@ -38,7 +38,7 @@ class ConstantNode(LiteralNode):
 	value: str
 
 	def glsl(self) -> str:
-		return self.value
+		return f"complex({self.value}, 0)"
 
 	def __repr__(self) -> str:
 		return self.value

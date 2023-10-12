@@ -39,8 +39,12 @@ class MinimalGLWidget(QtGui.QOpenGLWindow):
 
         with open("function.txt") as f:
             expression = f.read().lower()
-        tree = parse_expression(expression)
-        glsl_expression = simplify_tree(tree, 1).glsl()
+        try:
+            tree = parse_expression(expression)
+            glsl_expression = simplify_tree(tree, 1).glsl()
+        except Exception as e:
+            print(e)
+            glsl_expression = "complex(1, 0)"
 
         fragment_code = ""
         dir_ = "fragment_shader/"
@@ -109,7 +113,6 @@ class MinimalGLWidget(QtGui.QOpenGLWindow):
         return super().mouseReleaseEvent(event)
 
     def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
-        print(event.key())
         if event.key() == Qt.Key.Key_Return:
             self.load_shader_code()
             self.update()

@@ -23,7 +23,8 @@ void main() {
 
     float h = c_arg(z).x;
     float l = c_abs(z).x;
-    float l_ = clamp(l / (l + 1), 0f, 0.999999);    // l = 1 can break the okhsl converter because of float errors
+    float l_ = clamp(l / (l + 1), 0f, 0.999999);    
+    // l = 1 can break the okhsl converter because of float errors
     float h_ = h/(2*pi) + 0.5;
 
     switch (color_map) {
