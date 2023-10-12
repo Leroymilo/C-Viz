@@ -1,19 +1,3 @@
-#version 450 core
-
-#define pi      3.14159265358979311599796346854418516
-#define e       2.71828182845904523536028747135266250
-#define log10e  0.43429448190325176115678118549112696
-// #define complex vec2
-
-uniform vec2 origin;
-uniform vec2 size;
-uniform float scale;
-
-// uniform sampler2D tex;
-
-in vec2 uvs;
-out vec4 f_color;
-
 struct complex {
     float x;
     float y;
@@ -141,62 +125,4 @@ complex c_atanh(complex z) {
     float d = z.x * z.x + z.y * z.y - 2 * z.x + 1;
     float x = 1 - z.x * z.x - z.y * z.y;
     return c_mult(complex(0.5, 0), c_log(complex(x/d, 2 * z.y / d)));
-}
-
-
-// actual function to render:
-complex f(complex z) {
-    return FUNCTION;
-
-    // // f(z) = z²
-    // return c_mult(z, z);
-
-    // // f(z) = e^z
-    // return c_exp(z);
-
-    // // f(z) = (z²-2)/z²
-    // complex z2 = c_mult(z, z);
-    // return c_div(c_add(z2, complex(-2, 0)), z2);
-}
-
-vec4 hl_to_rgb(float h, float l) {
-    float c = 1 - abs(2*l - 1);
-    float h1 = mod(h*6, 6);
-    float x = c * (1 - abs(mod(h1,2) - 1));
-    int i = int(h1);
-
-    vec3 color;
-
-    switch (i) {
-        case 0: color = vec3(c, x, 0); break;
-        case 1: color = vec3(x, c, 0); break;
-        case 2: color = vec3(0, c, x); break;
-        case 3: color = vec3(0, x, c); break;
-        case 4: color = vec3(x, 0, c); break;
-        case 5: color = vec3(c, 0, x); break;
-    }
-
-    return vec4((color + vec3(l - c/2)).rgb, 1);
-    // r, g, b and a should be in [0, 1]
-}
-
-// main shader processing
-void main() {
-    // vec2 texuvs = vec2(-0.5, -0.5) + uvs * vec2(1, -1) / 2;
-    // if (texture(tex, texuvs).rgb == vec3(1, 1, 1)) {
-        // Rendering the function
-        vec2 uv1 = uvs * size/2 / scale + origin;
-        complex z = complex(uv1.x, uv1.y);
-
-        z = f(z);
-
-        float h = c_arg(z).x / (2*pi) + 0.5;
-        float l = c_abs(z).x;
-        l = l / (l + 1);
-        f_color = hl_to_rgb(h, l);
-    // }
-    // else {
-    //     // Rendering GUI
-    //     f_color = vec4(texture(tex, texuvs));
-    // }
 }

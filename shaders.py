@@ -1,10 +1,17 @@
 import sys
 from array import array
+from enum import Enum
 
 import pygame as pg
 import moderngl
 
 from expression.main import parse_expression, simplify_tree
+
+
+class ColorMap(Enum):
+    HSL = 0
+    OKLCh = 1
+
 
 # Parameters (TODO : put all this in a class some day)
 
@@ -12,6 +19,7 @@ MINW, MINH = 500, 500
 W, H = 800, 500
 X, Y = 0, 0
 Z = 1.7
+color_map = ColorMap.HSL
 
 
 # Pygame Init
@@ -41,11 +49,19 @@ def compile() -> tuple[moderngl.Program, moderngl.VertexArray]:
 
     with open("function.txt") as f:
         expression = f.read().lower()
-    
     tree = parse_expression(expression)
     glsl_expression = simplify_tree(tree, 1).glsl()
-    with open("fragment_shader.glsl") as f:
-        frag_shader = f.read().replace("FUNCTION", glsl_expression)
+
+    frag_shader = ""
+    dir_ = "fragment_shader/"
+    with open(dir_+"header.glsl") as f:
+        frag_shader += f.read()
+    with open(dir_+"colormap.glsl") as f:
+        frag_shader += f.read()
+    with open(dir_+"complex.glsl") as f:
+        frag_shader += f.read()
+    with open(dir_+"shader.glsl") as f:
+        frag_shader += f.read().replace("FUNCTION", glsl_expression)
 
     program = ctx.program(vertex_shader=vert_shader, fragment_shader=frag_shader)
     render_object = ctx.vertex_array(program, [(quad_buffer, '2f 2f', 'vert', 'texcoord')])
@@ -65,6 +81,7 @@ def render(program: moderngl.Program, render_object: moderngl.VertexArray):
     params["origin"] = (X, Y)
     params["size"] = (W, H)
     params["scale"] = 10 ** Z
+    params["color_map"] = color_map.value
     for key, value in params.items():
         if key in program:
             program[key] = value
@@ -120,6 +137,10 @@ if __name__ == "__main__":
             
             elif event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
                 mv_start = event.pos
+            
+            elif event.type == pg.MOUSEBUTTONDOWN and event.button == 3:
+                color_map = ColorMap((color_map.value + 1)%len(ColorMap))
+                updated = True
             
             elif event.type == pg.MOUSEBUTTONUP and event.button == 1:
                 move(mv_start, event.pos)
