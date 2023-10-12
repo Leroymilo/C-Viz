@@ -23,7 +23,7 @@ void main() {
 
     float h = c_arg(z).x;
     float l = c_abs(z).x;
-    float l_ = clamp(l / (l + 1), 0f, 0.999999);
+    float l_ = clamp(l / (l + 1), 0f, 0.999999);    // l = 1 can break the okhsl converter because of float errors
     float h_ = h/(2*pi) + 0.5;
 
     switch (color_map) {
@@ -31,7 +31,7 @@ void main() {
             f_color = hl_to_rgb(h_, l_);
             break;
         case 1:
-            RGB color = okhsl_to_srgb(HSL(h_, 0.7, l_));
+            RGB color = okhsl_to_srgb(HSL(h_, 0.8, l_));
             f_color = vec4(color.r, color.g, color.b, 1);
             break;
     }
