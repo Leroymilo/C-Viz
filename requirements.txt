@@ -1,2 +1,2 @@
-pygame==2.5.2
+PyQT5==5.15.9
 moderngl==5.8.2

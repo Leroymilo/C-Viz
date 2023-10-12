@@ -13,7 +13,7 @@ In your terminal :
 ## Usage
 
  - Activate the virtual environment (see **Setup**).
- - Run `python shaders.py`.
+ - Run `python main.py`.
  - Write the function you want to plot in `function.txt`, here are some pointers :
     - The case (UPPER or Lower) does not matter.
     - Exponentiation is noted with `^`.
@@ -26,7 +26,8 @@ In your terminal :
  - Mouse wheel to zoom in and out.
  - Left click and drag to move the complex plane.
  - Space bar to reset zoom and position.
- - Return/Enter (new line key) to reload the function
+ - Return (new line key) to reload the function
+ - Right click to cycle color maps (HSL, okHSL)
 
 ## Credits
 
