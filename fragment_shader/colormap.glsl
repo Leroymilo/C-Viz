@@ -662,7 +662,7 @@ HSV srgb_to_okhsv(RGB rgb)
 	return HSV(h, s, v);
 }
 
-vec4 hl_to_rgb(float h, float l) {
+vec4 hsl_to_rgb(float h, float s, float l) {
     float c = 1 - abs(2*l - 1);
     float h1 = mod(h*6, 6);
     float x = c * (1 - abs(mod(h1,2) - 1));

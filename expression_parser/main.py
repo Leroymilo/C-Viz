@@ -1,9 +1,9 @@
 from cmath import *
 
-from expression.lexer import Lexer
-from expression.parser_ import Parser
-from expression.functions import FUNCS
-from expression.nodes import *
+from expression_parser.lexer import Lexer
+from expression_parser.parser_ import Parser
+from expression_parser.functions import FUNCS
+from expression_parser.nodes import *
 
 def parse_expression(expression: str) -> Node:
     return Parser(Lexer(expression).generate_tokens()).parse()

@@ -3,8 +3,6 @@ from __future__ import annotations
 
 from enum import Enum
 from array import array
-import typing
-from PyQt5 import QtCore
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
@@ -13,11 +11,12 @@ from PyQt5.QtWidgets import QWidget
 
 import moderngl
 
-from expression.main import parse_expression, simplify_tree
+from expression_parser.main import parse_expression, simplify_tree
 
-class ColorMap(Enum):
-    HSL = 0
-    OKLCh = 1
+COLORMAPS = [
+    {"name": "HSL", "desc": "Common Hue Saturation Luminosity colormap."},
+    {"name": "OKHSL", "desc": "HSL colormap with a more consistent perceived lightness."}
+]
 
 
 class SettingsWindow(QMainWindow):
@@ -25,7 +24,7 @@ class SettingsWindow(QMainWindow):
         super().__init__()
         self.render_window = render
         self.openGL_widget = render.render_widget
-        render.render_widget.settings_window = self
+        render.render_widget.settings = self
 
         main_layout = QVBoxLayout()
 
@@ -34,32 +33,130 @@ class SettingsWindow(QMainWindow):
 
         exp_layout.addWidget(QLabel("Function expression : f(z) = "))
 
-        self.expression_line = QLineEdit("z")
+        self.expression_line = QLineEdit("z^5-1")   # Unit 5th roots
         exp_layout.addWidget(self.expression_line)
 
         self.reload_button = QPushButton("Reload")
         self.reload_button.setAutoDefault(True)
         exp_layout.addWidget(self.reload_button)
 
-        self.expression_box = QWidget()
-        self.expression_box.setLayout(exp_layout)
-        main_layout.addWidget(self.expression_box)
+        expression_box = QWidget()
+        expression_box.setLayout(exp_layout)
+        main_layout.addWidget(expression_box)
 
+        # Center position line
+        position_layout = QHBoxLayout()
+
+        position_layout.addWidget(QLabel("Centered on : "))
+
+        self.pos_x = QLineEdit("{:.5e}".format(0))
+        self.pos_x.setValidator(QDoubleValidator())
+        self.pos_x.setFixedWidth(120)
+        position_layout.addWidget(self.pos_x)
+
+        position_layout.addWidget(QLabel(" + i"))
+
+        self.pos_y = QLineEdit("{:.5e}".format(0))
+        self.pos_y.setValidator(QDoubleValidator())
+        self.pos_y.setFixedWidth(120)
+        position_layout.addWidget(self.pos_y)
+
+        position_layout.addStretch()
+        position_box = QWidget()
+        position_box.setLayout(position_layout)
+        main_layout.addWidget(position_box)
+
+        # Scale line
+        scale_layout = QHBoxLayout()
+
+        scale_layout.addWidget(QLabel("Scale (logarithmic) : "))
+
+        self.scale = QSlider(Qt.Horizontal)
+        self.scale.setMinimum(-170)
+        self.scale.setMaximum(200)
+        self.scale.setValue(22)    # tested with (z*z-2)/(z*z)
+        scale_layout.addWidget(self.scale)
+
+        self.scale_display = QLabel()
+        self.scale_display.setFixedWidth(100)
+        self.update_scale_display()
+        scale_layout.addWidget(self.scale_display)
+
+        scale_box = QWidget()
+        scale_box.setLayout(scale_layout)
+        main_layout.addWidget(scale_box)
+
+        # Colormap line
+        colormap_layout = QHBoxLayout()
+
+        self.colormap = QComboBox()
+        self.colormap.addItems([data["name"] for data in COLORMAPS])
+        self.colormap.setFixedSize(self.colormap.minimumSizeHint())
+        colormap_layout.addWidget(self.colormap)
+        
+        self.colormap_desc = QLabel()
+        self.update_colormap_desc()
+        colormap_layout.addWidget(self.colormap_desc)
+
+        colormap_box = QWidget()
+        colormap_box.setLayout(colormap_layout)
+        main_layout.addWidget(colormap_box)
+
+        # Set the central widget of the Window.
+        main_layout.addStretch()
         widget = QWidget()
         widget.setLayout(main_layout)
-
-        # Set the central widget of the Window. Widget will expand
-        # to take up all the space in the window by default.
         self.setCentralWidget(widget)
 
         # binds
-        self.reload_button.clicked.connect(self.reload_render)
-        self.expression_line.returnPressed.connect(self.reload_render)
-
-        print("settings initialized")
+        self.reload_button.clicked.connect(self.reload_expression)
+        self.expression_line.returnPressed.connect(self.reload_expression)
+        self.pos_x.returnPressed.connect(self.refresh)
+        self.pos_y.returnPressed.connect(self.refresh)
+        self.scale.valueChanged.connect(self.refresh)
+        self.colormap.currentIndexChanged.connect(self.refresh)
     
-    def reload_render(self):
+    def reset(self):
+        self.pos_x.setText(str(0))
+        self.pos_y.setText(str(0))
+        self.scale.setValue(22)
+        self.refresh()
+    
+    def get_origin(self) -> tuple[float, float]:
+        return tuple(map(float, (self.pos_x.text(), self.pos_y.text())))
+
+    def get_scale(self) -> float:
+        return 10 ** (self.scale.value()/10)
+    
+    def get_style(self) -> int:
+        return self.colormap.currentIndex() | 12
+    
+    def move(self, pxl_delta: QPointF):
+        delta: QPointF = pxl_delta / self.get_scale()
+        X, Y = self.get_origin()
+        self.pos_x.setText("{:.5e}".format(X - delta.x()))
+        self.pos_y.setText("{:.5e}".format(Y + delta.y()))
+        self.refresh()
+
+    def update_scale(self, delta: int):
+        self.scale.setValue(self.scale.value() + delta)
+    
+    def update_scale_display(self):
+        self.scale_display.setText("{:.3e}".format(self.get_scale()))
+    
+    def cycle_colormap(self):
+        self.colormap.setCurrentIndex((self.colormap.currentIndex() + 1)%len(COLORMAPS))
+    
+    def update_colormap_desc(self):
+        self.colormap_desc.setText(COLORMAPS[self.colormap.currentIndex()]["desc"])
+
+    def reload_expression(self):
         self.openGL_widget.load_shader_code()
+        self.refresh()
+    
+    def refresh(self):
+        self.update_colormap_desc()
+        self.update_scale_display()
         self.openGL_widget.update()
     
     def closeEvent(self, event: QCloseEvent) -> None:
@@ -76,37 +173,25 @@ class RenderWindow(QMainWindow):
 
         self.render_widget = RenderWidget()
         self.setCentralWidget(self.render_widget)
-        self.render_widget.reset()
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
         if event.key() == Qt.Key.Key_Return:
-            self.render_widget.load_shader_code()
-            self.render_widget.update()
+            self.render_widget.settings.reload_expression()
         elif event.key() == Qt.Key.Key_Space:
-            self.render_widget.reset()
-            self.render_widget.update()
+            self.render_widget.settings.reset()
         return super().keyPressEvent(event)
 
 
 class RenderWidget(QOpenGLWidget):
     def __init__(self) -> None:
-        self.settings_window: SettingsWindow = None
+        self.settings: SettingsWindow = None
         super().__init__()
-    
-    def reset(self):
-        self.origin = QPointF(0, 0)
-        self.Z = 1.7    # Zoom exponent
-        self.color_map = ColorMap.HSL
-        self.move_start: QPointF = None
-    
-    def get_scale(self):
-        return 10 ** self.Z
 
     def load_shader_code(self):
         with open("vertex_shader.glsl") as f:
             vertex_code = f.read()
 
-        expression = self.settings_window.expression_line.text()
+        expression = self.settings.expression_line.text()
         try:
             tree = parse_expression(expression)
             glsl_expression = simplify_tree(tree, 1).glsl()
@@ -114,7 +199,6 @@ class RenderWidget(QOpenGLWidget):
             print(e)
             glsl_expression = "complex(1, 0)"
 
-        print(glsl_expression)
         fragment_code = ""
         dir_ = "fragment_shader/"
         with open(dir_+"header.glsl") as f:
@@ -143,10 +227,11 @@ class RenderWidget(QOpenGLWidget):
 
     def paintGL(self):
         params = {}
-        params["origin"] = self.origin.x(), self.origin.y()
+        params["origin"] = self.settings.get_origin()
         params["size"] = (self.size().width(), self.size().height())
-        params["scale"] = self.get_scale()
-        params["color_map"] = self.color_map.value
+        params["scale"] = self.settings.get_scale()
+        params["style"] = self.settings.get_style()
+        params["K"] = (1, 1, 5, 15)
         for key, value in params.items():
             if key in self.program:
                 self.program[key] = value
@@ -154,38 +239,28 @@ class RenderWidget(QOpenGLWidget):
         self.render_object.render(mode=moderngl.TRIANGLE_STRIP)
         
     def wheelEvent(self, event: QWheelEvent):
-        self.Z = (int(10*self.Z) + event.angleDelta().y()//120)/10
-        # avoids float rounding errors
-        self.update()
+        self.settings.update_scale(event.angleDelta().y()//120)
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
         if event.buttons() & 1:
             self.move_start = event.localPos()
         if event.buttons() & 2:
-            self.color_map = ColorMap((self.color_map.value + 1)%len(ColorMap))
+            self.settings.cycle_colormap()
             self.update()
         return super().mousePressEvent(event)
     
     def mouseMoveEvent(self, event: QMouseEvent) -> None:
         if self.move_start is not None:
-            self.move(event.localPos())
+            self.settings.move(event.localPos() - self.move_start)
             self.move_start = event.localPos()
         return super().mouseMoveEvent(event)
     
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
         if event.button() == 1:
             if self.move_start is not None:
-                self.move(event.localPos())
+                self.settings.move(event.localPos() - self.move_start)
                 self.move_start = None
         return super().mouseReleaseEvent(event)
-    
-    def move(self, pos: QPointF):
-        scale = self.get_scale()
-        delta: QPointF = (pos - self.move_start) / scale
-        self.origin += delta - 2*QPointF(delta.x(), 0)
-        # y is reversed in screen coordinates
-        self.update()
-
 
 if __name__ == '__main__':
     app = QApplication([])
