@@ -75,7 +75,8 @@ void main() {
     // Enable arg as hue
     if ((style & 4) > 0) {
         h = theta;
-        s = 0.9;
+        s = 0.8;
+        l = 0.5;
     }
 
     // Enable mod as luminosity
@@ -83,7 +84,16 @@ void main() {
         l = rho;
     }
 
-    // 
+    // Enables style lines
+    if ((style & 240) > 0) {
+        float mult = 1;
+        for(int i=0; i<4; i++) {
+            if ((style & (1 << (4+i))) > 0) {
+                mult *= l_mults[i];
+            }
+        }
+        l = 0.6 * l + 0.4 * mult;
+    }
 
     switch (style & 3) {
         case 0:

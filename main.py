@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-
-from enum import Enum
 from array import array
 
 from PyQt5.QtWidgets import *
@@ -102,6 +100,39 @@ class SettingsWindow(QMainWindow):
         colormap_box.setLayout(colormap_layout)
         main_layout.addWidget(colormap_box)
 
+        # General style line
+        style_layout = QHBoxLayout()
+
+        style_layout.addWidget(QLabel("Style :"))
+
+        self.arg_hue = QCheckBox("arg(f(z)) as hue")
+        self.arg_hue.setChecked(True)
+        style_layout.addWidget(self.arg_hue)
+
+        sep = QFrame()
+        sep.setFrameShape(QFrame.VLine)
+        style_layout.addWidget(sep)
+
+        self.mod_lum = QCheckBox("|f(z)| as luminosity")
+        self.mod_lum.setChecked(True)
+        style_layout.addWidget(self.mod_lum)
+
+        style_layout.addStretch()
+        style_box = QWidget()
+        style_box.setLayout(style_layout)
+        main_layout.addWidget(style_box)
+
+        # # Style lines box
+        # main_layout.addWidget(QLabel("Style lines :"))
+
+        # style_lines_layout = QVBoxLayout()
+        # style_lines_layout.addWidget(QLabel("Test"))
+        # style_lines_layout.addWidget(QLabel("Test2"))
+
+        # style_lines_box = QGroupBox()
+        # style_lines_box.setLayout(style_lines_layout)
+        # main_layout.addWidget(style_lines_box)
+
         # Set the central widget of the Window.
         main_layout.addStretch()
         widget = QWidget()
@@ -115,6 +146,8 @@ class SettingsWindow(QMainWindow):
         self.pos_y.returnPressed.connect(self.refresh)
         self.scale.valueChanged.connect(self.refresh)
         self.colormap.currentIndexChanged.connect(self.refresh)
+        self.arg_hue.stateChanged.connect(self.refresh)
+        self.mod_lum.stateChanged.connect(self.refresh)
     
     def reset(self):
         self.pos_x.setText(str(0))
@@ -129,7 +162,10 @@ class SettingsWindow(QMainWindow):
         return 10 ** (self.scale.value()/10)
     
     def get_style(self) -> int:
-        return self.colormap.currentIndex() | 12
+        res = self.colormap.currentIndex()
+        res |= 4 * self.arg_hue.isChecked()
+        res |= 8 * self.mod_lum.isChecked()
+        return res
     
     def move(self, pxl_delta: QPointF):
         delta: QPointF = pxl_delta / self.get_scale()
@@ -167,7 +203,6 @@ class SettingsWindow(QMainWindow):
 class RenderWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setBaseSize(QSize(800, 600))
         self.setMinimumSize(QSize(500, 500))
         self.setWindowFlag(Qt.WindowCloseButtonHint, False)
 
@@ -184,6 +219,7 @@ class RenderWindow(QMainWindow):
 
 class RenderWidget(QOpenGLWidget):
     def __init__(self) -> None:
+        self.move_start = None
         self.settings: SettingsWindow = None
         super().__init__()
 
@@ -266,6 +302,6 @@ if __name__ == '__main__':
     app = QApplication([])
     render = RenderWindow()
     settings = SettingsWindow(render)
-    render.show()
+    render.showMaximized()
     settings.show()
     app.exec_()
