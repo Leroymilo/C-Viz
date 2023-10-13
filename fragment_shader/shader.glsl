@@ -5,6 +5,8 @@ uniform float scale;
 
 // color mapping settings
 uniform int color_map;    // 0 for HSL, 1 for okHSL
+uniform int style;
+// a collection of flags giving how should f(z) be represented
 
 in vec2 uvs;
 out vec4 f_color;
@@ -12,6 +14,24 @@ out vec4 f_color;
 // actual function to render:
 complex f(complex z) {
     return FUNCTION;
+}
+
+float enhance_part(float x) {
+    float K = 1;
+    float m = mod(x, K) / K;
+    return 4*pow(m,3) - 6*pow(m,2) + 3*m;
+}
+
+float enhance_mod(float rho) {
+    float K = 5;
+    float log_rho = log(rho)*K;
+    return ceil(log_rho) - log_rho;
+}
+
+float enhance_arg(float arg) {
+    float K = 15;
+    float m = mod(arg, pi/K);
+    return 4*pow(m,3) - 6*pow(m,2) + 3*m;
 }
 
 // main shader processing
@@ -34,7 +54,9 @@ void main() {
 
     float h = c_arg(z).x;
     float l = c_abs(z).x;
-    float l_ = clamp(l / (l + 1), 0f, 0.999999);    
+    // float l_ = clamp(l / (l + 1), 0f, 0.999999);
+    float l_ = 0.4 + 0.2 * enhance_mod(l) * enhance_arg(h);
+    // float l_ = 0.4 + 0.2 * enhance_part(z.x) * enhance_part(z.y);
     // l = 1 can break the okhsl converter because of float errors
     float h_ = h/(2*pi) + 0.5;
 

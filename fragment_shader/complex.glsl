@@ -51,8 +51,11 @@ complex c_div(complex z1, complex z2) {
 }
 
 complex c_pow(complex z1, complex z2) {
+    float r1 = c_abs(z1).x;
     float t1 = c_arg(z1).x;
-    return c_rect(c_abs(z1).x * exp(-z2.y*t1), z2.x*t1);
+    float r3 = pow(r1, z2.x) * exp(-z2.y*t1);
+    float t3 = z2.y * log(r1) + t1 * z2.x;
+    return c_rect(r3, t3);
 }
 
 complex c_exp(complex z) {

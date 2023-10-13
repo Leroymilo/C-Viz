@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 
 from enum import Enum
 from array import array
+import typing
+from PyQt5 import QtCore
 
-import PyQt5.QtGui as QtGui
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
 from PyQt5.QtCore import QPointF, QSize, Qt
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QWidget
 
 import moderngl
 
@@ -16,13 +20,78 @@ class ColorMap(Enum):
     OKLCh = 1
 
 
-class MinimalGLWidget(QtGui.QOpenGLWindow):
+class SettingsWindow(QMainWindow):
+    def __init__(self, render: RenderWindow) -> None:
+        super().__init__()
+        self.render_window = render
+        self.openGL_widget = render.render_widget
+        render.render_widget.settings_window = self
+
+        main_layout = QVBoxLayout()
+
+        # Formula line
+        exp_layout = QHBoxLayout()
+
+        exp_layout.addWidget(QLabel("Function expression : f(z) = "))
+
+        self.expression_line = QLineEdit("z")
+        exp_layout.addWidget(self.expression_line)
+
+        self.reload_button = QPushButton("Reload")
+        self.reload_button.setAutoDefault(True)
+        exp_layout.addWidget(self.reload_button)
+
+        self.expression_box = QWidget()
+        self.expression_box.setLayout(exp_layout)
+        main_layout.addWidget(self.expression_box)
+
+        widget = QWidget()
+        widget.setLayout(main_layout)
+
+        # Set the central widget of the Window. Widget will expand
+        # to take up all the space in the window by default.
+        self.setCentralWidget(widget)
+
+        # binds
+        self.reload_button.clicked.connect(self.reload_render)
+        self.expression_line.returnPressed.connect(self.reload_render)
+
+        print("settings initialized")
+    
+    def reload_render(self):
+        self.openGL_widget.load_shader_code()
+        self.openGL_widget.update()
+    
+    def closeEvent(self, event: QCloseEvent) -> None:
+        self.render_window.close()
+        return super().closeEvent(event)
+
+
+class RenderWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWidth(800)
-        self.setWidth(600)
+        self.setBaseSize(QSize(800, 600))
         self.setMinimumSize(QSize(500, 500))
-        self.reset()
+        self.setWindowFlag(Qt.WindowCloseButtonHint, False)
+
+        self.render_widget = RenderWidget()
+        self.setCentralWidget(self.render_widget)
+        self.render_widget.reset()
+
+    def keyPressEvent(self, event: QKeyEvent) -> None:
+        if event.key() == Qt.Key.Key_Return:
+            self.render_widget.load_shader_code()
+            self.render_widget.update()
+        elif event.key() == Qt.Key.Key_Space:
+            self.render_widget.reset()
+            self.render_widget.update()
+        return super().keyPressEvent(event)
+
+
+class RenderWidget(QOpenGLWidget):
+    def __init__(self) -> None:
+        self.settings_window: SettingsWindow = None
+        super().__init__()
     
     def reset(self):
         self.origin = QPointF(0, 0)
@@ -37,8 +106,7 @@ class MinimalGLWidget(QtGui.QOpenGLWindow):
         with open("vertex_shader.glsl") as f:
             vertex_code = f.read()
 
-        with open("function.txt") as f:
-            expression = f.read().lower()
+        expression = self.settings_window.expression_line.text()
         try:
             tree = parse_expression(expression)
             glsl_expression = simplify_tree(tree, 1).glsl()
@@ -46,6 +114,7 @@ class MinimalGLWidget(QtGui.QOpenGLWindow):
             print(e)
             glsl_expression = "complex(1, 0)"
 
+        print(glsl_expression)
         fragment_code = ""
         dir_ = "fragment_shader/"
         with open(dir_+"header.glsl") as f:
@@ -61,8 +130,6 @@ class MinimalGLWidget(QtGui.QOpenGLWindow):
         self.render_object = self.ctx.vertex_array(self.program, [(self.quad_buffer, '2f 2f', 'vert', 'texcoord')])
 
     def initializeGL(self):
-        # ModernGL Init
-
         self.ctx = moderngl.create_context()
         self.quad_buffer = self.ctx.buffer(data=array('f', [
             # position (x, y), uv coords (x, y)
@@ -78,7 +145,7 @@ class MinimalGLWidget(QtGui.QOpenGLWindow):
         params = {}
         params["origin"] = self.origin.x(), self.origin.y()
         params["size"] = (self.size().width(), self.size().height())
-        params["scale"] = 10 ** self.Z
+        params["scale"] = self.get_scale()
         params["color_map"] = self.color_map.value
         for key, value in params.items():
             if key in self.program:
@@ -86,12 +153,12 @@ class MinimalGLWidget(QtGui.QOpenGLWindow):
     
         self.render_object.render(mode=moderngl.TRIANGLE_STRIP)
         
-    def wheelEvent(self, event: QtGui.QWheelEvent):
+    def wheelEvent(self, event: QWheelEvent):
         self.Z = (int(10*self.Z) + event.angleDelta().y()//120)/10
         # avoids float rounding errors
         self.update()
 
-    def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
+    def mousePressEvent(self, event: QMouseEvent) -> None:
         if event.buttons() & 1:
             self.move_start = event.localPos()
         if event.buttons() & 2:
@@ -99,30 +166,21 @@ class MinimalGLWidget(QtGui.QOpenGLWindow):
             self.update()
         return super().mousePressEvent(event)
     
-    def mouseMoveEvent(self, event: QtGui.QMouseEvent) -> None:
+    def mouseMoveEvent(self, event: QMouseEvent) -> None:
         if self.move_start is not None:
             self.move(event.localPos())
             self.move_start = event.localPos()
         return super().mouseMoveEvent(event)
     
-    def mouseReleaseEvent(self, event: QtGui.QMouseEvent) -> None:
+    def mouseReleaseEvent(self, event: QMouseEvent) -> None:
         if event.button() == 1:
             if self.move_start is not None:
                 self.move(event.localPos())
                 self.move_start = None
         return super().mouseReleaseEvent(event)
-
-    def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
-        if event.key() == Qt.Key.Key_Return:
-            self.load_shader_code()
-            self.update()
-        elif event.key() == Qt.Key.Key_Space:
-            self.reset()
-            self.update()
-        return super().keyPressEvent(event)
     
     def move(self, pos: QPointF):
-        scale = 10 ** self.Z
+        scale = self.get_scale()
         delta: QPointF = (pos - self.move_start) / scale
         self.origin += delta - 2*QPointF(delta.x(), 0)
         # y is reversed in screen coordinates
@@ -131,6 +189,8 @@ class MinimalGLWidget(QtGui.QOpenGLWindow):
 
 if __name__ == '__main__':
     app = QApplication([])
-    widget = MinimalGLWidget()
-    widget.show()
+    render = RenderWindow()
+    settings = SettingsWindow(render)
+    render.show()
+    settings.show()
     app.exec_()
