@@ -33,7 +33,7 @@ The style panel allows to change how f(z) is represented :
  **Note that the image of the unit circle will always be displayed as long as the style lines for |f(z)| are enabled.**
 
 
-### Controls :
+### Controls
 
  - Mouse wheel to zoom in and out.
  - Left click and drag to move the complex plane.
