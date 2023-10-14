@@ -76,4 +76,4 @@ I added support for constants, exponent, variables and functions as well as adap
 Most of the colorspace converter code from [here](https://bottosson.github.io/posts/colorpicker/) (thanks Björn).
 I had to port from C to glsl.
 
-Shader Code by myself, including redfining complex functions.
+Shader Code by myself, including redefining complex functions.
