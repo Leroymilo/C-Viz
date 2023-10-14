@@ -64,7 +64,15 @@ In your terminal, with virtual environment activated:
 The executable should be in the newly created `dist` folder.</br>
 This is not a proper build since python is a scripting language,
 but pyinstaller allows for packaging a script with its libraries
-and the python interpreter for use without installing python.
+and the python interpreter for use without installing python.</br>
+Once built, the executable needs to be run in the parent directory of `vertex_shader.glsl` and of the whole folder `fragment_shader` to work properly. like this</br>
+```
+parent_folder
+\  main (or main.exe)
+ | vertex_shader.glsl
+ | fragment_shader
+ | \ ...
+```
 
 ## Credits
 
