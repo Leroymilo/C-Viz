@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 class RenderWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.setWindowTitle("Render")
         self.setMinimumSize(QSize(500, 500))
         # Prevents closing to pair the windows
         self.setWindowFlag(Qt.WindowCloseButtonHint, False)

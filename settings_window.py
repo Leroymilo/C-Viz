@@ -28,6 +28,10 @@ class SettingsWindow(QMainWindow):
         self.openGL_widget = render.render_widget
         render.render_widget.settings = self
 
+        self.setWindowTitle("Settings")
+
+        # Layout is built from top to bottom, from left to right
+
         main_layout = QVBoxLayout()
 
         self.expression(main_layout)
@@ -280,6 +284,7 @@ class SettingsWindow(QMainWindow):
 
     def reload_expression(self):
         self.openGL_widget.load_shader_code()
+        self.render_window.setWindowTitle(self.expression_line.text())
         self.refresh()
     
     def refresh(self):
