@@ -6,8 +6,8 @@ from render_window import RenderWindow
 
 
 COLORMAPS = [
-    {"name": "HSL",   "desc": "Common Hue Saturation Luminosity colormap_list."},
-    {"name": "OKHSL", "desc": "HSL colormap_list with a more consistent perceived lightness."}
+    {"name": "HSL",   "desc": "Common Hue Saturation Luminosity colormap."},
+    {"name": "OKHSL", "desc": "HSL colormap with a more consistent perceived lightness."}
 ]
 
 STYLELINES = [
