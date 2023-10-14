@@ -12,8 +12,15 @@ import moderngl
 from expression_parser.main import parse_expression, simplify_tree
 
 COLORMAPS = [
-    {"name": "HSL", "desc": "Common Hue Saturation Luminosity colormap."},
+    {"name": "HSL",   "desc": "Common Hue Saturation Luminosity colormap."},
     {"name": "OKHSL", "desc": "HSL colormap with a more consistent perceived lightness."}
+]
+
+style_lines = [
+    {"name": "Re(f(z))",  "defK": 0,   "minK": -100, "maxK": 100, "map": lambda x: 10 ** (-x/10)},
+    {"name": "Im(f(z))",  "defK": 0,   "minK": -100, "maxK": 100, "map": lambda x: 10 ** (-x/10)},
+    {"name": "|f(z)|",    "defK": 0,   "minK": -100, "maxK": 100, "map": lambda x: 10 ** (-x/10)},
+    {"name": "arg(f(z))", "defK": 179, "minK": 5,    "maxK": 180, "map": lambda x: 185 - x},
 ]
 
 
@@ -42,7 +49,12 @@ class SettingsWindow(QMainWindow):
         expression_box.setLayout(exp_layout)
         main_layout.addWidget(expression_box)
 
-        # Center position line
+        # Zoom and position
+
+        main_layout.addWidget(QLabel("Zoom and Position"))
+        zoom_pos_layout = QVBoxLayout()
+
+        ## Center position line
         position_layout = QHBoxLayout()
 
         position_layout.addWidget(QLabel("Centered on : "))
@@ -62,9 +74,9 @@ class SettingsWindow(QMainWindow):
         position_layout.addStretch()
         position_box = QWidget()
         position_box.setLayout(position_layout)
-        main_layout.addWidget(position_box)
+        zoom_pos_layout.addWidget(position_box)
 
-        # Scale line
+        ## Scale line
         scale_layout = QHBoxLayout()
 
         scale_layout.addWidget(QLabel("Scale (logarithmic) : "))
@@ -82,9 +94,22 @@ class SettingsWindow(QMainWindow):
 
         scale_box = QWidget()
         scale_box.setLayout(scale_layout)
-        main_layout.addWidget(scale_box)
+        zoom_pos_layout.addWidget(scale_box)
 
-        # Colormap line
+
+        self.zoom_pos_reset = QPushButton("Reset")
+        zoom_pos_layout.addWidget(self.zoom_pos_reset)
+
+        zoom_pos_box = QGroupBox()
+        zoom_pos_box.setLayout(zoom_pos_layout)
+        main_layout.addWidget(zoom_pos_box)
+
+        # Style
+
+        main_layout.addWidget(QLabel("Style"))
+        style_layout = QVBoxLayout()
+
+        ## Colormap line
         colormap_layout = QHBoxLayout()
 
         self.colormap = QComboBox()
@@ -98,43 +123,71 @@ class SettingsWindow(QMainWindow):
 
         colormap_box = QWidget()
         colormap_box.setLayout(colormap_layout)
-        main_layout.addWidget(colormap_box)
+        style_layout.addWidget(colormap_box)
 
-        # General style line
-        style_layout = QHBoxLayout()
+        ## General style line
+        gen_style_layout = QHBoxLayout()
 
-        style_layout.addWidget(QLabel("Style :"))
-
-        self.arg_hue = QCheckBox("arg(f(z)) as hue")
+        self.arg_hue = QCheckBox()
         self.arg_hue.setChecked(True)
-        style_layout.addWidget(self.arg_hue)
+        gen_style_layout.addWidget(self.arg_hue)
+        gen_style_layout.addWidget(QLabel("arg(f(z)) as hue"))
 
         sep = QFrame()
         sep.setFrameShape(QFrame.VLine)
-        style_layout.addWidget(sep)
+        gen_style_layout.addWidget(sep)
 
-        self.mod_lum = QCheckBox("|f(z)| as luminosity")
+        self.mod_lum = QCheckBox()
         self.mod_lum.setChecked(True)
-        style_layout.addWidget(self.mod_lum)
+        gen_style_layout.addWidget(self.mod_lum)
+        gen_style_layout.addWidget(QLabel("|f(z)| as luminosity"))
 
-        style_layout.addStretch()
-        style_box = QWidget()
+        gen_style_layout.addStretch()
+        gen_style_box = QWidget()
+        gen_style_box.setLayout(gen_style_layout)
+        style_layout.addWidget(gen_style_box)
+
+        ## Style lines box
+        style_layout.addWidget(QLabel("Style lines :"))
+
+        style_lines_layout = QGridLayout()
+
+        style_lines_layout.addWidget(QLabel("Along :"), 0, 0)
+        style_lines_layout.addWidget(QLabel("Line spacing (Re(f(z)), Im(f(z)) and |f(z)| are logarithmic)"), 0, 2)
+
+        self.style_lines_checkboxes: list[QCheckBox] = []
+        self.style_lines_sliders: list[QSlider] = []
+        self.style_lines_resets: list[QPushButton] = []
+        for i, data in enumerate(style_lines, start=1):
+            style_lines_layout.addWidget(QLabel(data["name"]), i, 0)
+
+            cb = QCheckBox()
+            style_lines_layout.addWidget(cb, i, 1)
+            self.style_lines_checkboxes.append(cb)
+
+            slider = QSlider(Qt.Horizontal)
+            slider.setMinimum(data["minK"])
+            slider.setMaximum(data["maxK"])
+            slider.setValue(data["defK"])
+            style_lines_layout.addWidget(slider, i, 2)
+            self.style_lines_sliders.append(slider)
+
+            button = QPushButton("Reset")
+            style_lines_layout.addWidget(button, i, 3)
+            self.style_lines_resets.append(button)
+
+        style_lines_box = QGroupBox()
+        style_lines_box.setLayout(style_lines_layout)
+        style_layout.addWidget(style_lines_box)
+
+
+        style_box = QGroupBox()
         style_box.setLayout(style_layout)
         main_layout.addWidget(style_box)
 
-        # # Style lines box
-        # main_layout.addWidget(QLabel("Style lines :"))
-
-        # style_lines_layout = QVBoxLayout()
-        # style_lines_layout.addWidget(QLabel("Test"))
-        # style_lines_layout.addWidget(QLabel("Test2"))
-
-        # style_lines_box = QGroupBox()
-        # style_lines_box.setLayout(style_lines_layout)
-        # main_layout.addWidget(style_lines_box)
-
         # Set the central widget of the Window.
         main_layout.addStretch()
+        main_layout.addWidget(QLabel("Press Escape to bring this window back to front."))
         widget = QWidget()
         widget.setLayout(main_layout)
         self.setCentralWidget(widget)
@@ -145,14 +198,27 @@ class SettingsWindow(QMainWindow):
         self.pos_x.returnPressed.connect(self.refresh)
         self.pos_y.returnPressed.connect(self.refresh)
         self.scale.valueChanged.connect(self.refresh)
+        self.zoom_pos_reset.clicked.connect(self.reset)
         self.colormap.currentIndexChanged.connect(self.refresh)
         self.arg_hue.stateChanged.connect(self.refresh)
         self.mod_lum.stateChanged.connect(self.refresh)
+        for i in range(4):
+            self.style_lines_checkboxes[i].stateChanged.connect(self.refresh)
+            self.style_lines_sliders[i].valueChanged.connect(self.refresh)
+        # The loop put every call to self.reset_style_line(3) for some reason
+        self.style_lines_resets[0].clicked.connect(lambda : self.reset_style_line(0))
+        self.style_lines_resets[1].clicked.connect(lambda : self.reset_style_line(1))
+        self.style_lines_resets[2].clicked.connect(lambda : self.reset_style_line(2))
+        self.style_lines_resets[3].clicked.connect(lambda : self.reset_style_line(3))
     
     def reset(self):
         self.pos_x.setText(str(0))
         self.pos_y.setText(str(0))
         self.scale.setValue(22)
+        self.refresh()
+    
+    def reset_style_line(self, i: int):
+        self.style_lines_sliders[i].setValue(style_lines[i]["defK"])
         self.refresh()
     
     def get_origin(self) -> tuple[float, float]:
@@ -165,7 +231,15 @@ class SettingsWindow(QMainWindow):
         res = self.colormap.currentIndex()
         res |= 4 * self.arg_hue.isChecked()
         res |= 8 * self.mod_lum.isChecked()
+        for i in range(4):
+            res |= (1 << (4+i)) * self.style_lines_checkboxes[i].isChecked()
         return res
+    
+    def get_Ks(self) -> int:
+        return (
+            style_lines[i]["map"](self.style_lines_sliders[i].value())
+            for i in range(4)
+        )
     
     def move(self, pxl_delta: QPointF):
         delta: QPointF = pxl_delta / self.get_scale()
@@ -210,10 +284,11 @@ class RenderWindow(QMainWindow):
         self.setCentralWidget(self.render_widget)
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
-        if event.key() == Qt.Key.Key_Return:
-            self.render_widget.settings.reload_expression()
-        elif event.key() == Qt.Key.Key_Space:
-            self.render_widget.settings.reset()
+        if event.key() == Qt.Key.Key_Escape:
+            window = self.render_widget.settings
+            window.setWindowState(window.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
+            window.activateWindow()
+
         return super().keyPressEvent(event)
 
 
@@ -267,7 +342,7 @@ class RenderWidget(QOpenGLWidget):
         params["size"] = (self.size().width(), self.size().height())
         params["scale"] = self.settings.get_scale()
         params["style"] = self.settings.get_style()
-        params["K"] = (1, 1, 5, 15)
+        params["K"] = self.settings.get_Ks()
         for key, value in params.items():
             if key in self.program:
                 self.program[key] = value
@@ -280,9 +355,6 @@ class RenderWidget(QOpenGLWidget):
     def mousePressEvent(self, event: QMouseEvent) -> None:
         if event.buttons() & 1:
             self.move_start = event.localPos()
-        if event.buttons() & 2:
-            self.settings.cycle_colormap()
-            self.update()
         return super().mousePressEvent(event)
     
     def mouseMoveEvent(self, event: QMouseEvent) -> None:
