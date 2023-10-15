@@ -325,59 +325,6 @@ RGB gamut_clip_project_to_L_cusp(RGB rgb)
 	return oklab_to_linear_srgb(Lab(L_clipped, C_clipped * a_, C_clipped * b_));
 }
 
-RGB gamut_clip_adaptive_L0_0_5(RGB rgb, float alpha = 0.05f)
-{
-	if (rgb.r < 1 && rgb.g < 1 && rgb.b < 1 && rgb.r > 0 && rgb.g > 0 && rgb.b > 0)
-		return rgb;
-
-	Lab lab = linear_srgb_to_oklab(rgb);
-
-	float L = lab.L;
-	float eps = 0.00001f;
-	float C = max(eps, sqrt(lab.a * lab.a + lab.b * lab.b));
-	float a_ = lab.a / C;
-	float b_ = lab.b / C;
-
-	float Ld = L - 0.5f;
-	float e1 = 0.5f + abs(Ld) + alpha * C;
-	float L0 = 0.5f * (1.f + sign(Ld) * (e1 - sqrt(e1 * e1 - 2.f * abs(Ld))));
-
-	float t = find_gamut_intersection(a_, b_, L, C, L0);
-	float L_clipped = L0 * (1.f - t) + t * L;
-	float C_clipped = t * C;
-
-	return oklab_to_linear_srgb(Lab(L_clipped, C_clipped * a_, C_clipped * b_));
-}
-
-RGB gamut_clip_adaptive_L0_L_cusp(RGB rgb, float alpha = 0.05f)
-{
-	if (rgb.r < 1 && rgb.g < 1 && rgb.b < 1 && rgb.r > 0 && rgb.g > 0 && rgb.b > 0)
-		return rgb;
-
-	Lab lab = linear_srgb_to_oklab(rgb);
-
-	float L = lab.L;
-	float eps = 0.00001f;
-	float C = max(eps, sqrt(lab.a * lab.a + lab.b * lab.b));
-	float a_ = lab.a / C;
-	float b_ = lab.b / C;
-
-	// The cusp is computed here and in find_gamut_intersection, an optimized solution would only compute it once.
-	LC cusp = find_cusp(a_, b_);
-
-	float Ld = L - cusp.L;
-	float k = 2.f * (Ld > 0 ? 1.f - cusp.L : cusp.L);
-
-	float e1 = 0.5f * k + abs(Ld) + alpha * C / k;
-	float L0 = cusp.L + 0.5f * (sign(Ld) * (e1 - sqrt(e1 * e1 - 2.f * k * abs(Ld))));
-
-	float t = find_gamut_intersection(a_, b_, L, C, L0);
-	float L_clipped = L0 * (1.f - t) + t * L;
-	float C_clipped = t * C;
-
-	return oklab_to_linear_srgb(Lab(L_clipped, C_clipped * a_, C_clipped * b_));
-}
-
 float toe(float x)
 {
 	float k_1 = 0.206f;
