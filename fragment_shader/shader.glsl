@@ -55,7 +55,7 @@ void main() {
 
     if (isnan(z.x) || isnan(z.y)) {
         vec2 uv2 = floor(uvs * size / 20);
-        f_color = vec4(0.4) + vec4(0.2) * (mod(uv2.x + uv2.y,2f));
+        f_color = vec4(0.4) + vec4(0.2) * (mod(uv2.x + uv2.y, 2.0));
         return;
     }
 
