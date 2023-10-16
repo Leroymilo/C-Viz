@@ -66,7 +66,7 @@ class RenderWidget(QOpenGLWidget):
         self.render_object = self.ctx.vertex_array(self.program, [(self.quad_buffer, '2f 2f', 'vert', 'texcoord')])
 
     def initializeGL(self):
-        self.ctx = moderngl.create_context()
+        self.ctx = moderngl.create_context(require=450)
         self.quad_buffer = self.ctx.buffer(data=array('f', [
             # position (x, y), uv coords (x, y)
             -1.0, 1.0, -1.0, 1.0,   # topleft
