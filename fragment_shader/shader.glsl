@@ -56,28 +56,26 @@ void main() {
     if (isnan(z.x) || isnan(z.y)) {
         vec2 uv2 = floor(uvs * size / 20);
         float v = uv2.x + uv2.y;
-        f_color = vec4(0.4) + vec4(0.2) * (mod(v, 2.0));
+        f_color = vec4(0.4) + vec4(0.2) * (mod(v, 2.f));
         return;
     }
 
     // Computes lum multiplier for every style line
     vec4 l_mults = enhance(z);
 
-    float theta = c_arg(z).x / (2*pi) + 0.5;
-    float rho = c_abs(z).x; rho = clamp(rho / (rho + 1), 0.0, 0.999999);
+    float theta = 0.5 * c_arg(z).x / pi + 0.5;
+    float rho = c_abs(z).x; rho = clamp(rho / (rho + 1), 0.f, 0.999999);
 
-    float h = 0, s = 0, l = 1;
+    vec3 hsl = vec3(0.f, 0.f, 1.f);
 
     // Enable arg as hue
     if ((style & 4) > 0) {
-        h = theta;
-        s = 0.8;
-        l = 0.5;
+        hsl = vec3(theta, 0.8, 0.5);
     }
 
     // Enable mod as luminosity
     if ((style & 8) > 0) {
-        l = rho;
+        hsl.z = rho;
     }
 
     // Enables style lines
@@ -88,17 +86,17 @@ void main() {
                 mult *= l_mults[i];
             }
         }
-        l = 0.6 * l + 0.4 * mult;
+        hsl.z = 0.6 * hsl.z + 0.4 * mult;
     }
 
     switch (style & 3) {
         case 0:
             // HSL colormap
-            f_color = hsl_to_rgb(h, s, l);
+            f_color = hsl_to_rgba(hsl);
             break;
         case 1:
             // okHSL colormap
-            f_color = vec4(okhsl_to_srgb(HSL(h, s, l)).rgb, 1);
+            f_color = okhsl_to_srgba(hsl);
             break;
     }
 }
