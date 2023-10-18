@@ -17,7 +17,6 @@
 // SOFTWARE.
 
 struct Lab { float L; float a; float b; };
-struct RGB { float r; float g; float b; };
 struct HSL { float h; float s; float l; };
 struct LC { float L; float C; };
 
@@ -41,7 +40,7 @@ float srgb_transfer_function_inv(float a)
 	return .04045f < a ? pow((a + .055f) / 1.055f, 2.4f) : a / 12.92f;
 }
 
-Lab linear_srgb_to_oklab(RGB c)
+Lab linear_srgb_to_oklab(vec3 c)
 {
 	float l = 0.4122214708f * c.r + 0.5363325363f * c.g + 0.0514459929f * c.b;
 	float m = 0.2119034982f * c.r + 0.6806995451f * c.g + 0.1073969566f * c.b;
@@ -58,7 +57,7 @@ Lab linear_srgb_to_oklab(RGB c)
     );
 }
 
-RGB oklab_to_linear_srgb(Lab c)
+vec3 oklab_to_linear_srgb(Lab c)
 {
 	float l_ = c.L + 0.3963377774f * c.a + 0.2158037573f * c.b;
 	float m_ = c.L - 0.1055613458f * c.a - 0.0638541728f * c.b;
@@ -68,11 +67,13 @@ RGB oklab_to_linear_srgb(Lab c)
 	float m = m_ * m_ * m_;
 	float s = s_ * s_ * s_;
 
-	return RGB(
-		+4.0767416621f * l - 3.3077115913f * m + 0.2309699292f * s,
-		-1.2684380046f * l + 2.6097574011f * m - 0.3413193965f * s,
-		-0.0041960863f * l - 0.7034186147f * m + 1.7076147010f * s
-    );
+	vec3 v = vec3(l, m, s);
+
+	return v * mat3(
+		+4.0767416621f, -3.3077115913f, +0.2309699292f,
+		-1.2684380046f, +2.6097574011f, -0.3413193965f,
+		-0.0041960863f, -0.7034186147f, +1.7076147010f
+	);
 }
 
 // Finds the maximum saturation possible for a given hue that fits in sRGB
@@ -150,7 +151,7 @@ LC find_cusp(float a, float b)
 	float S_cusp = compute_max_saturation(a, b);
 
 	// Convert to linear sRGB to find the first point where at least one of r,g or b >= 1:
-	RGB rgb_at_max = oklab_to_linear_srgb(Lab(1, S_cusp * a, S_cusp * b));
+	vec3 rgb_at_max = oklab_to_linear_srgb(Lab(1, S_cusp * a, S_cusp * b));
 	float L_cusp = cbrt(1.f / max(max(rgb_at_max.r, rgb_at_max.g), rgb_at_max.b));
 	float C_cusp = L_cusp * S_cusp;
 
@@ -273,7 +274,7 @@ Cs get_Cs(float L, float a_, float b_)
 	return Cs(C_0, C_mid, C_max);
 }
 
-RGB okhsl_to_srgb(HSL hsl)
+vec3 okhsl_to_srgb(HSL hsl)
 {
 	float h = hsl.h;
 	float s = hsl.s;
@@ -281,12 +282,12 @@ RGB okhsl_to_srgb(HSL hsl)
 
 	if (l == 1.0f)
 	{
-		return RGB(1.f, 1.f, 1.f);
+		return vec3(1.f, 1.f, 1.f);
 	}
 
 	else if (l == 0.f)
 	{
-		return RGB(0.f, 0.f, 0.f);
+		return vec3(0.f, 0.f, 0.f);
 	}
 
 	float a_ = cos(2.f * pi * h);
@@ -323,17 +324,17 @@ RGB okhsl_to_srgb(HSL hsl)
 		C = k_0 + t * k_1 / (1.f - k_2 * t);
 	}
 
-	RGB rgb = oklab_to_linear_srgb(Lab(L, C * a_, C * b_));
-	return RGB(
+	vec3 rgb = oklab_to_linear_srgb(Lab(L, C * a_, C * b_));
+	return vec3(
 		srgb_transfer_function(rgb.r),
 		srgb_transfer_function(rgb.g),
 		srgb_transfer_function(rgb.b)
     );
 }
 
-HSL srgb_to_okhsl(RGB rgb)
+HSL srgb_to_okhsl(vec3 rgb)
 {
-	Lab lab = linear_srgb_to_oklab(RGB(
+	Lab lab = linear_srgb_to_oklab(vec3(
 		srgb_transfer_function_inv(rgb.r),
 		srgb_transfer_function_inv(rgb.g),
 		srgb_transfer_function_inv(rgb.b)

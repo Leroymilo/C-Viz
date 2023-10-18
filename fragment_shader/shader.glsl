@@ -98,8 +98,7 @@ void main() {
             break;
         case 1:
             // okHSL colormap
-            RGB color = okhsl_to_srgb(HSL(h, s, l));
-            f_color = vec4(color.r, color.g, color.b, 1);
+            f_color = vec4(okhsl_to_srgb(HSL(h, s, l)).rgb, 1);
             break;
     }
 }
