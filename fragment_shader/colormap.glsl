@@ -18,7 +18,6 @@
 
 struct Lab { float L; float a; float b; };
 struct RGB { float r; float g; float b; };
-struct HSV { float h; float s; float v; };
 struct HSL { float h; float s; float l; };
 struct LC { float L; float C; };
 
@@ -179,150 +178,18 @@ float find_gamut_intersection(float a, float b, float L1, float C1, float L0, LC
 		// First intersect with triangle
 		t = cusp.C * (L0 - 1.f) / (C1 * (cusp.L - 1.f) + cusp.C * (L0 - L1));
 
-		// Then one step Halley's method
-		{
-			float dL = L1 - L0;
-			float dC = C1;
+		// // Then one step Halley's method
+		// {
+		// 	float dL = L1 - L0;
+		// 	float dC = C1;
 
-			float k_l = +0.3963377774f * a + 0.2158037573f * b;
-			float k_m = -0.1055613458f * a - 0.0638541728f * b;
-			float k_s = -0.0894841775f * a - 1.2914855480f * b;
-
-			float l_dt = dL + dC * k_l;
-			float m_dt = dL + dC * k_m;
-			float s_dt = dL + dC * k_s;
-
-
-			// If higher accuracy is required, 2 or 3 iterations of the following block can be used:
-			{
-				float L = L0 * (1.f - t) + t * L1;
-				float C = t * C1;
-
-				float l_ = L + C * k_l;
-				float m_ = L + C * k_m;
-				float s_ = L + C * k_s;
-
-				float l = l_ * l_ * l_;
-				float m = m_ * m_ * m_;
-				float s = s_ * s_ * s_;
-
-				float ldt = 3 * l_dt * l_ * l_;
-				float mdt = 3 * m_dt * m_ * m_;
-				float sdt = 3 * s_dt * s_ * s_;
-
-				float ldt2 = 6 * l_dt * l_dt * l_;
-				float mdt2 = 6 * m_dt * m_dt * m_;
-				float sdt2 = 6 * s_dt * s_dt * s_;
-
-				float r = 4.0767416621f * l - 3.3077115913f * m + 0.2309699292f * s - 1;
-				float r1 = 4.0767416621f * ldt - 3.3077115913f * mdt + 0.2309699292f * sdt;
-				float r2 = 4.0767416621f * ldt2 - 3.3077115913f * mdt2 + 0.2309699292f * sdt2;
-
-				float u_r = r1 / (r1 * r1 - 0.5f * r * r2);
-				float t_r = -r * u_r;
-
-				float g = -1.2684380046f * l + 2.6097574011f * m - 0.3413193965f * s - 1;
-				float g1 = -1.2684380046f * ldt + 2.6097574011f * mdt - 0.3413193965f * sdt;
-				float g2 = -1.2684380046f * ldt2 + 2.6097574011f * mdt2 - 0.3413193965f * sdt2;
-
-				float u_g = g1 / (g1 * g1 - 0.5f * g * g2);
-				float t_g = -g * u_g;
-
-				float b = -0.0041960863f * l - 0.7034186147f * m + 1.7076147010f * s - 1;
-				float b1 = -0.0041960863f * ldt - 0.7034186147f * mdt + 1.7076147010f * sdt;
-				float b2 = -0.0041960863f * ldt2 - 0.7034186147f * mdt2 + 1.7076147010f * sdt2;
-
-				float u_b = b1 / (b1 * b1 - 0.5f * b * b2);
-				float t_b = -b * u_b;
-
-				t_r = u_r >= 0.f ? t_r : inf;
-				t_g = u_g >= 0.f ? t_g : inf;
-				t_b = u_b >= 0.f ? t_b : inf;
-
-				t += min(t_r, min(t_g, t_b));
-			}
-		}
+		// 	float k_l = +0.3963377774f * a + 0.2158037573f * b;
+		// 	float k_m = -0.1055613458f * a - 0.0638541728f * b;
+		// 	float k_s = -0.0894841775f * a - 1.2914855480f * b;
+		// }
 	}
 
 	return t;
-}
-
-float find_gamut_intersection(float a, float b, float L1, float C1, float L0)
-{
-	// Find the cusp of the gamut triangle
-	LC cusp = find_cusp(a, b);
-
-	return find_gamut_intersection(a, b, L1, C1, L0, cusp);
-}
-
-RGB gamut_clip_preserve_chroma(RGB rgb)
-{
-	if (rgb.r < 1 && rgb.g < 1 && rgb.b < 1 && rgb.r > 0 && rgb.g > 0 && rgb.b > 0)
-		return rgb;
-
-	Lab lab = linear_srgb_to_oklab(rgb);
-
-	float L = lab.L;
-	float eps = 0.00001f;
-	float C = max(eps, sqrt(lab.a * lab.a + lab.b * lab.b));
-	float a_ = lab.a / C;
-	float b_ = lab.b / C;
-
-	float L0 = clamp(L, 0, 1);
-
-	float t = find_gamut_intersection(a_, b_, L, C, L0);
-	float L_clipped = L0 * (1 - t) + t * L;
-	float C_clipped = t * C;
-
-	return oklab_to_linear_srgb(Lab(L_clipped, C_clipped * a_, C_clipped * b_));
-}
-
-RGB gamut_clip_project_to_0_5(RGB rgb)
-{
-	if (rgb.r < 1 && rgb.g < 1 && rgb.b < 1 && rgb.r > 0 && rgb.g > 0 && rgb.b > 0)
-		return rgb;
-
-	Lab lab = linear_srgb_to_oklab(rgb);
-
-	float L = lab.L;
-	float eps = 0.00001f;
-	float C = max(eps, sqrt(lab.a * lab.a + lab.b * lab.b));
-	float a_ = lab.a / C;
-	float b_ = lab.b / C;
-
-	float L0 = 0.5;
-
-	float t = find_gamut_intersection(a_, b_, L, C, L0);
-	float L_clipped = L0 * (1 - t) + t * L;
-	float C_clipped = t * C;
-
-	return oklab_to_linear_srgb(Lab(L_clipped, C_clipped * a_, C_clipped * b_));
-}
-
-RGB gamut_clip_project_to_L_cusp(RGB rgb)
-{
-	if (rgb.r < 1 && rgb.g < 1 && rgb.b < 1 && rgb.r > 0 && rgb.g > 0 && rgb.b > 0)
-		return rgb;
-
-	Lab lab = linear_srgb_to_oklab(rgb);
-
-	float L = lab.L;
-	float eps = 0.00001f;
-	float C = max(eps, sqrt(lab.a * lab.a + lab.b * lab.b));
-	float a_ = lab.a / C;
-	float b_ = lab.b / C;
-
-	// The cusp is computed here and in find_gamut_intersection, an optimized solution would only compute it once.
-	LC cusp = find_cusp(a_, b_);
-
-	float L0 = cusp.L;
-
-	float t = find_gamut_intersection(a_, b_, L, C, L0);
-
-	float L_clipped = L0 * (1 - t) + t * L;
-	float C_clipped = t * C;
-
-	return oklab_to_linear_srgb(Lab(L_clipped, C_clipped * a_, C_clipped * b_));
 }
 
 float toe(float x)
@@ -512,102 +379,6 @@ HSL srgb_to_okhsl(RGB rgb)
 	return HSL(h, s, l);
 }
 
-
-RGB okhsv_to_srgb(HSV hsv)
-{
-	float h = hsv.h;
-	float s = hsv.s;
-	float v = hsv.v;
-
-	float a_ = cos(2.f * pi * h);
-	float b_ = sin(2.f * pi * h);
-	
-	LC cusp = find_cusp(a_, b_);
-	ST ST_max = to_ST(cusp);
-	float S_max = ST_max.S;
-	float T_max = ST_max.T;
-	float S_0 = 0.5f;
-	float k = 1 - S_0 / S_max;
-
-	// first we compute L and V as if the gamut is a perfect triangle:
-
-	// L, C when v==1:
-	float L_v = 1     - s * S_0 / (S_0 + T_max - T_max * k * s);
-	float C_v = s * T_max * S_0 / (S_0 + T_max - T_max * k * s);
-
-	float L = v * L_v;
-	float C = v * C_v;
-
-	// then we compensate for both toe and the curved top part of the triangle:
-	float L_vt = toe_inv(L_v);
-	float C_vt = C_v * L_vt / L_v;
-
-	float L_new = toe_inv(L);
-	C = C * L_new / L;
-	L = L_new;
-
-	RGB rgb_scale = oklab_to_linear_srgb(Lab(L_vt, a_ * C_vt, b_ * C_vt));
-	float scale_L = cbrt(1.f / max(max(rgb_scale.r, rgb_scale.g), max(rgb_scale.b, 0.f)));
-
-	L = L * scale_L;
-	C = C * scale_L;
-
-	RGB rgb = oklab_to_linear_srgb(Lab(L, C * a_, C * b_));
-	return RGB(
-		srgb_transfer_function(rgb.r),
-		srgb_transfer_function(rgb.g),
-		srgb_transfer_function(rgb.b)
-    );
-}
-
-HSV srgb_to_okhsv(RGB rgb)
-{
-	Lab lab = linear_srgb_to_oklab(RGB(
-		srgb_transfer_function_inv(rgb.r),
-		srgb_transfer_function_inv(rgb.g),
-		srgb_transfer_function_inv(rgb.b)
-	));
-
-	float C = sqrt(lab.a * lab.a + lab.b * lab.b);
-	float a_ = lab.a / C;
-	float b_ = lab.b / C;
-
-	float L = lab.L;
-	float h = 0.5f + 0.5f * atan(-lab.b, -lab.a) / pi;
-
-	LC cusp = find_cusp(a_, b_);
-	ST ST_max = to_ST(cusp);
-	float S_max = ST_max.S;
-	float T_max = ST_max.T;
-	float S_0 = 0.5f;
-	float k = 1 - S_0 / S_max;
-
-	// first we find L_v, C_v, L_vt and C_vt
-
-	float t = T_max / (C + L * T_max);
-	float L_v = t * L;
-	float C_v = t * C;
-
-	float L_vt = toe_inv(L_v);
-	float C_vt = C_v * L_vt / L_v;
-
-	// we can then use these to invert the step that compensates for the toe and the curved top part of the triangle:
-	RGB rgb_scale = oklab_to_linear_srgb(Lab(L_vt, a_ * C_vt, b_ * C_vt));
-	float scale_L = cbrt(1.f / max(max(rgb_scale.r, rgb_scale.g), max(rgb_scale.b, 0.f)));
-
-	L = L / scale_L;
-	C = C / scale_L;
-
-	C = C * toe(L) / L;
-	L = toe(L);
-
-	// we can now compute v and s:
-
-	float v = L / L_v;
-	float s = (S_0 + T_max) * C_v / ((T_max * S_0) + T_max * k * C_v);
-
-	return HSV(h, s, v);
-}
 
 vec4 hsl_to_rgb(float h, float s, float l) {
     float c = s * (1 - abs(2*l - 1));

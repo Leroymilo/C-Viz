@@ -64,12 +64,7 @@ void main() {
     vec4 l_mults = enhance(z);
 
     float theta = c_arg(z).x / (2*pi) + 0.5;
-    float rho = c_abs(z).x; rho = clamp(rho / (rho + 1), 0f, 0.999999);
-    // float l_ = clamp(l / (l + 1), 0f, 0.999999);
-    // float l_ = 0.4 + 0.2 * enhance_mod(l) * enhance_arg(h);
-    // float l_ = 0.4 + 0.2 * enhance_part(z.x) * enhance_part(z.y);
-    // l = 1 can break the okhsl converter because of float errors
-    // float h_ = h/(2*pi) + 0.5;
+    float rho = c_abs(z).x; rho = clamp(rho / (rho + 1), 0.0, 0.999999);
 
     float h = 0, s = 0, l = 1;
 
