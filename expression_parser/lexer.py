@@ -1,3 +1,5 @@
+from cmath import pi, exp
+
 from expression_parser.tokens import Token, TokenType
 from expression_parser.functions import FUNCS
 
@@ -5,15 +7,14 @@ WHITESPACE = " \n\t"
 DIGITS = "0123456789"
 CHARS = "abcdefghijklmnopqrstuvwxyz_ρθ"
 VARS = {
-    'z': [Token(TokenType.VAR)],
+    'z': [Token(TokenType.VAR, 'z')],
+	't': [Token(TokenType.VAR, 't')],
 	'x': [Token(TokenType.FUNC, "re"), Token(TokenType.LPAREN), Token(TokenType.VAR), Token(TokenType.RPAREN)],
 	'y': [Token(TokenType.FUNC, "im"), Token(TokenType.LPAREN), Token(TokenType.VAR), Token(TokenType.RPAREN)],
-	'r': [Token(TokenType.FUNC, "abs"), Token(TokenType.LPAREN), Token(TokenType.VAR), Token(TokenType.RPAREN)],
 	'ρ': [Token(TokenType.FUNC, "abs"), Token(TokenType.LPAREN), Token(TokenType.VAR), Token(TokenType.RPAREN)],
-	't': [Token(TokenType.FUNC, "arg"), Token(TokenType.LPAREN), Token(TokenType.VAR), Token(TokenType.RPAREN)],
 	'θ': [Token(TokenType.FUNC, "arg"), Token(TokenType.LPAREN), Token(TokenType.VAR), Token(TokenType.RPAREN)]
 }
-CONSTS = {"pi", "e"}
+CONSTS = {"i": 1j, "j": -0.5+2j*pi/3, "pi": pi, "e": exp(1)}
 
 class Lexer:
 	def __init__(self, text: str):
@@ -90,12 +91,8 @@ class Lexer:
 			string += self.current_char
 			self.advance()
 		
-		# Constants
-		if string in {'i', 'j'}:
-			return [Token(TokenType.NUMBER, 1j)]
-		if string in CONSTS:
-			return [Token(TokenType.CONST, string)]
-		
+		if string in CONSTS.keys():
+			return [Token(TokenType.NUMBER, CONSTS[string])]
 		if string in VARS.keys():
 			return VARS[string]
 		if string in FUNCS:

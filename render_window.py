@@ -2,7 +2,7 @@ from array import array
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
-from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtCore import QSize, QTimer, QDateTime, Qt
 
 import moderngl
 
@@ -38,6 +38,10 @@ class RenderWidget(QOpenGLWidget):
         self.move_start = None
         self.settings: SettingsWindow = None
         super().__init__()
+        self.timer = QTimer(self)
+        self.timer.setInterval(10)
+        self.timer.start()
+        self.timer.timeout.connect(self.update)
 
     def load_shader_code(self):
         with open("vertex_shader.glsl") as f:
@@ -46,7 +50,7 @@ class RenderWidget(QOpenGLWidget):
         expression = self.settings.expression_line.text()
         try:
             tree = parse_expression(expression)
-            glsl_expression = simplify_tree(tree, 1).glsl()
+            glsl_expression = simplify_tree(tree).glsl()
         except Exception as e:
             print(e)
             glsl_expression = "complex(1, 0)"
@@ -64,6 +68,9 @@ class RenderWidget(QOpenGLWidget):
 
         self.program = self.ctx.program(vertex_shader=vertex_code, fragment_shader=fragment_code)
         self.render_object = self.ctx.vertex_array(self.program, [(self.quad_buffer, '2f 2f', 'vert', 'texcoord')])
+        
+        # reset timer for consistency
+        self.start = QDateTime.currentMSecsSinceEpoch()
 
     def initializeGL(self):
         self.ctx = moderngl.create_context(require=450)
@@ -84,6 +91,8 @@ class RenderWidget(QOpenGLWidget):
         params["scale"] = self.settings.get_scale()
         params["style"] = self.settings.get_style()
         params["K"] = self.settings.get_Ks()
+        t = QDateTime.currentMSecsSinceEpoch() - self.start
+        params["t_real"] = t % 4294967296 # modulo max uint
         for key, value in params.items():
             if key in self.program:
                 self.program[key] = value

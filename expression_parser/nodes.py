@@ -13,18 +13,16 @@ class Node(ABC):
 
 @dataclass
 class VariableNode(Node):
+	name: str
+
 	def glsl(self) -> str:
-		return 'z'
+		return str(self)
 	
 	def __repr__(self) -> str:
-		return 'z'
+		return self.name
 
 @dataclass
-class LiteralNode(Node):
-	value: complex | str
-
-@dataclass
-class NumberNode(LiteralNode):
+class NumberNode(Node):
 	value: complex
 
 	def glsl(self) -> str:
@@ -32,16 +30,6 @@ class NumberNode(LiteralNode):
 	
 	def __repr__(self) -> str:
 		return f"{self.value}"
-
-@dataclass
-class ConstantNode(LiteralNode):
-	value: str
-
-	def glsl(self) -> str:
-		return f"complex({self.value}, 0)"
-
-	def __repr__(self) -> str:
-		return self.value
 
 @dataclass
 class OperationNode(Node):

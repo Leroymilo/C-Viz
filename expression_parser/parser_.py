@@ -93,13 +93,9 @@ class Parser:
 			self.advance()
 			return NumberNode(token.value)
 		
-		if token.type == TokenType.CONST:
-			self.advance()
-			return ConstantNode(token.value)
-		
 		if token.type == TokenType.VAR:
 			self.advance()
-			return VariableNode()
+			return VariableNode(token.value)
 
 		if token.type == TokenType.PLUS:
 			self.advance()

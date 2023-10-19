@@ -12,6 +12,9 @@ uniform int style;
 uniform vec4 K;
 // 4 values giving the 4 scalers of style lines (space between lines)
 
+uniform uint t_real;    // time variable for animation
+complex t = complex(float(t_real)/1000, 0);
+
 in vec2 uvs;
 out vec4 f_color;
 
