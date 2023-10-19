@@ -9,10 +9,10 @@ CHARS = "abcdefghijklmnopqrstuvwxyz_ρθ"
 VARS = {
     'z': [Token(TokenType.VAR, 'z')],
 	't': [Token(TokenType.VAR, 't')],
-	'x': [Token(TokenType.FUNC, "re"), Token(TokenType.LPAREN), Token(TokenType.VAR), Token(TokenType.RPAREN)],
-	'y': [Token(TokenType.FUNC, "im"), Token(TokenType.LPAREN), Token(TokenType.VAR), Token(TokenType.RPAREN)],
-	'ρ': [Token(TokenType.FUNC, "abs"), Token(TokenType.LPAREN), Token(TokenType.VAR), Token(TokenType.RPAREN)],
-	'θ': [Token(TokenType.FUNC, "arg"), Token(TokenType.LPAREN), Token(TokenType.VAR), Token(TokenType.RPAREN)]
+	'x': [Token(TokenType.FUNC, "re"), Token(TokenType.LPAREN), Token(TokenType.VAR, 'z'), Token(TokenType.RPAREN)],
+	'y': [Token(TokenType.FUNC, "im"), Token(TokenType.LPAREN), Token(TokenType.VAR, 'z'), Token(TokenType.RPAREN)],
+	'ρ': [Token(TokenType.FUNC, "abs"), Token(TokenType.LPAREN), Token(TokenType.VAR, 'z'), Token(TokenType.RPAREN)],
+	'θ': [Token(TokenType.FUNC, "arg"), Token(TokenType.LPAREN), Token(TokenType.VAR, 'z'), Token(TokenType.RPAREN)]
 }
 CONSTS = {"i": 1j, "j": -0.5+1j*(3**0.5)/2, "pi": pi, "e": exp(1)}
 

@@ -1,4 +1,5 @@
 from array import array
+from traceback import format_exc
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
@@ -39,7 +40,7 @@ class RenderWidget(QOpenGLWidget):
         self.settings: SettingsWindow = None
         super().__init__()
         self.timer = QTimer(self)
-        self.timer.setInterval(10)
+        self.timer.setInterval(50)
         self.timer.start()
         self.timer.timeout.connect(self.update)
 
@@ -52,8 +53,11 @@ class RenderWidget(QOpenGLWidget):
             tree = parse_expression(expression)
             glsl_expression = simplify_tree(tree).glsl()
         except Exception as e:
-            print(e)
-            glsl_expression = "complex(1, 0)"
+            self.settings.error_log.setText(str(e))
+            print(format_exc())
+            return
+        
+        self.settings.error_log.setText("All good!")
 
         fragment_code = ""
         dir_ = "fragment_shader/"

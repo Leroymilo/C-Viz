@@ -1,10 +1,11 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
-from PyQt5.QtCore import QPointF, Qt
+from PyQt5.QtCore import QPointF, Qt, QSize
 
 from render_window import RenderWindow
 
 from expression_parser.functions import read_defined_functions
+from expression_parser.lexer import VARS, CONSTS, FUNCS, DEF_FUNCS
 
 COLORMAPS = [
     {"name": "HSL",   "desc": "Common Hue Saturation Luminosity colormap."},
@@ -51,18 +52,67 @@ class SettingsWindow(QMainWindow):
 
         self.bind()
         self.refresh()
+        self.update_insert_cb()
     
     def expression(self, parent_layout: QLayout):
-        layout = QHBoxLayout()
+        parent_layout.addWidget(QLabel("Function expression"))
 
-        layout.addWidget(QLabel("Function expression : f(z) = "))
+        layout = QVBoxLayout()
 
-        self.expression_line = QLineEdit("z^5-1")   # Unit 5th roots
-        layout.addWidget(self.expression_line)
+        self.exp_line(layout)
+        self.exp_insert(layout)
 
         self.reload_button = QPushButton("Reload")
         self.reload_button.setAutoDefault(True)
         layout.addWidget(self.reload_button)
+
+        self.error_log = QLineEdit("This is where error show up.")
+        self.error_log.setReadOnly(True)
+        layout.addWidget(self.error_log)
+
+        widget = QGroupBox()
+        widget.setLayout(layout)
+        parent_layout.addWidget(widget)
+    
+    def exp_line(self, parent_layout: QLayout):
+        layout = QHBoxLayout()
+
+        layout.addWidget(QLabel("f(z) = "))
+
+        self.expression_line = QLineEdit("z^5-1")   # Unit 5th roots
+        layout.addWidget(self.expression_line)
+
+        widget = QWidget()
+        widget.setLayout(layout)
+        parent_layout.addWidget(widget)
+    
+    def exp_insert(self, parent_layout: QLayout):
+        layout = QHBoxLayout()
+
+        layout.addWidget(QLabel("Insert : "))
+
+        self.insert_type = QComboBox()
+        self.insert_type.addItems(
+            ["Variable", "Constant", "Built-in Function", "Custom Function"]
+        )
+        layout.addWidget(self.insert_type)
+
+        self.insert_name = QComboBox()
+        self.insert_name.setSizeAdjustPolicy(
+            QComboBox.SizeAdjustPolicy(QComboBox.AdjustToContents)
+        )
+        layout.addWidget(self.insert_name)
+
+        # Displaying a raw icon (for tooltip):
+        label = QLabel()
+        icon = self.style().standardIcon(QStyle.SP_MessageBoxInformation)
+        label.setPixmap(icon.pixmap(QSize(16, 16)))
+        layout.addWidget(label)
+
+        layout.addStretch()
+
+        self.insert = QPushButton("Insert")
+        layout.addWidget(self.insert)
 
         widget = QWidget()
         widget.setLayout(layout)
@@ -209,8 +259,10 @@ class SettingsWindow(QMainWindow):
         parent_layout.addWidget(widget)
 
     def bind(self):
-        self.reload_button.clicked.connect(self.reload_expression)
         self.expression_line.returnPressed.connect(self.reload_expression)
+        self.insert_type.currentIndexChanged.connect(self.update_insert_cb)
+        self.insert.clicked.connect(self.apply_insert)
+        self.reload_button.clicked.connect(self.reload_expression)
         self.pos_x.returnPressed.connect(self.refresh)
         self.pos_y.returnPressed.connect(self.refresh)
         self.scale.valueChanged.connect(self.refresh)
@@ -278,6 +330,24 @@ class SettingsWindow(QMainWindow):
 
 
     # UPDATERS ======================================================================================================
+
+    def update_insert_cb(self):
+        self.insert_name.clear()
+        
+        match (self.insert_type.currentText()):
+            case "Variable":
+                self.insert_name.addItems(VARS.keys())
+            case "Constant":
+                self.insert_name.addItems(CONSTS.keys())
+            case "Built-in Function":
+                self.insert_name.addItems(sorted(FUNCS.keys()))
+            case "Custom Function":
+                self.insert_name.addItems(sorted(DEF_FUNCS.keys()))
+        
+        self.insert_name.adjustSize()
+    
+    def apply_insert(self):
+        print(self.insert_name.currentText())
     
     def update_scale_display(self):
         self.scale_display.setText("{:.3e}".format(self.get_scale()))
