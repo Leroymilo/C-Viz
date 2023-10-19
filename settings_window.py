@@ -4,6 +4,7 @@ from PyQt5.QtCore import QPointF, Qt
 
 from render_window import RenderWindow
 
+from expression_parser.functions import read_defined_functions
 
 COLORMAPS = [
     {"name": "HSL",   "desc": "Common Hue Saturation Luminosity colormap."},
@@ -16,6 +17,8 @@ STYLELINES = [
     {"name": "|f(z)|",    "defK": 0,   "minK": -100, "maxK": 100, "map": lambda x: 10 ** (-x/10)},
     {"name": "arg(f(z))", "defK": 179, "minK": 5,    "maxK": 180, "map": lambda x: 185 - x},
 ]
+
+read_defined_functions()
 
 
 class SettingsWindow(QMainWindow):

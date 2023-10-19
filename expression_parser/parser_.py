@@ -1,5 +1,6 @@
 from expression_parser.tokens import Token, TokenType
 from expression_parser.nodes import *
+from expression_parser.functions import FUNCS, DEF_FUNCS, replace_var
 
 class Parser:
 	def __init__(self, tokens):
@@ -77,6 +78,12 @@ class Parser:
 				self.raise_error()
 			
 			self.advance()
+
+			if token.value not in FUNCS.keys():
+				# custom defined function, replace var with result node
+				return replace_var(DEF_FUNCS[token.value], result)
+			
+			# built in function
 			return FunctionNode(token.value, result)
 
 		if token.type == TokenType.LPAREN:

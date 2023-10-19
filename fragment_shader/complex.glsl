@@ -17,7 +17,9 @@ complex c_conj(complex z) {
 }
 
 complex c_arg(complex z) {
-    return complex(atan(z.y, z.x), 0);
+    float val = atan(z.y, z.x);
+    val = val < 0 ? val + 2*pi : val;
+    return complex(val, 0);
 }
 
 complex c_abs(complex z) {

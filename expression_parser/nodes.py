@@ -92,7 +92,7 @@ class PowerNode(OperationNode):
 		return f"({self.node_a} ** {self.node_b})"
 
 @dataclass
-class FunctionNode:
+class FunctionNode(Node):
 	name: str
 	node: Node
 	

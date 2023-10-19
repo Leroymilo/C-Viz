@@ -1,3 +1,47 @@
 {
-    ""
+    "test": {
+        "tree": {
+            "type": "MultiplyNode",
+            "node_a": {
+                "type": "VariableNode",
+                "name": "z"
+            },
+            "node_b": {
+                "type": "VariableNode",
+                "name": "z"
+            }
+        }
+    },
+
+    "oscil01": {
+        "tree": {
+            "type": "DivideNode",
+            "node_a": {
+                "type": "AddNode",
+                "node_a": {
+                    "type": "FunctionNode",
+                    "name": "cos",
+                    "node": {
+                        "type": "MultiplyNode",
+                        "node_a": {
+                            "type": "VariableNode",
+                            "name": "t"
+                        },
+                        "node_b": {
+                            "type": "VariableNode",
+                            "name": "z"
+                        }
+                    }
+                },
+                "node_b": {
+                    "type": "NumberNode",
+                    "value": 1
+                }
+            },
+            "node_b": {
+                "type": "NumberNode",
+                "value": 2
+            }
+        }
+    }
 }

@@ -66,7 +66,7 @@ void main() {
     // Computes lum multiplier for every style line
     vec4 l_mults = enhance(z);
 
-    float theta = 0.5 * c_arg(z).x / pi + 0.5;
+    float theta = 0.5 * c_arg(z).x / pi;
     float rho = c_abs(z).x; rho = clamp(rho / (rho + 1), 0.f, 0.999999);
 
     vec3 hsl = vec3(0.f, 0.f, 1.f);

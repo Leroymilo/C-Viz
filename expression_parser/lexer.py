@@ -1,7 +1,7 @@
 from cmath import pi, exp
 
 from expression_parser.tokens import Token, TokenType
-from expression_parser.functions import FUNCS
+from expression_parser.functions import FUNCS, DEF_FUNCS
 
 WHITESPACE = " \n\t"
 DIGITS = "0123456789"
@@ -90,11 +90,11 @@ class Lexer:
 		while self.current_char is not None and self.current_char in CHARS + DIGITS:
 			string += self.current_char
 			self.advance()
-		
+
 		if string in CONSTS.keys():
 			return [Token(TokenType.NUMBER, CONSTS[string])]
 		if string in VARS.keys():
 			return VARS[string]
-		if string in FUNCS:
+		if string in FUNCS.keys() | DEF_FUNCS.keys():
 			return [Token(TokenType.FUNC, string)]
 		raise Exception(f"Unknown function or constant: \"{string}\"")
