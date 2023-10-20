@@ -87,6 +87,7 @@ class SettingsWindow(QMainWindow):
         layout.addWidget(self.expression_line)
 
         self.tex_label = QLabel()
+        self.tex_label.setStyleSheet("border: 1px solid black;") 
         layout.addWidget(self.tex_label)
 
         widget = QWidget()
