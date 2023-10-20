@@ -1,6 +1,9 @@
 from enum import Enum
 from dataclasses import dataclass
 
+from expression_parser.constants import Constant
+from expression_parser.variables import Variable
+
 class TokenType(Enum):
 	NUMBER    	= 0
 	CONST		= 1
@@ -17,7 +20,7 @@ class TokenType(Enum):
 @dataclass
 class Token:
 	type: TokenType
-	value: str | complex = None
+	value: str | complex | Constant | Variable = None
 
 	def __repr__(self):
 		return self.type.name + (f":{self.value}" if self.value != None else "")

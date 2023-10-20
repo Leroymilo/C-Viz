@@ -42,7 +42,8 @@ The style panel allows to change how f(z) is represented :
 ## Build
 
 ### Required
- - Python 3.10
+ - Python 3.12
+ - (On linux, you'll need python3.12-devel)
 
 ### Setup
 In your terminal:

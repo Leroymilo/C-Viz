@@ -3,11 +3,18 @@ from json import load, dump
 
 from expression_parser.nodes import *
 
+def true_phase(z: complex) -> float:
+    # result in [0, 2pi]
+    p = phase(z)
+    if p < 0:
+        return p + 2 * pi
+    return p
+
 FUNCS: dict[str,callable] = {
 	"re": (lambda z: z.real),
     "im": (lambda z: z.imag),
     "conj": (lambda z: z.real - 1j * z.imag),
-    "arg": (lambda z: phase(z) + pi)    # result in [0, 2pi]
+    "arg": (lambda z: true_phase(z))
 } | {
     # direct cmath functions :
     f.__name__: f

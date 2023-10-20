@@ -12,10 +12,10 @@ def simplify_tree(tree: Node) -> Node:
     # If strength == 0: NumberNodes will be merged by operations and functions.
     # If strength == 1: ConstantNodes will be merged too.
 
-    to_merge = NumberNode
+    to_merge = LiteralNode
 
     # no simplification
-    if isinstance(tree, NumberNode) or isinstance(tree, VariableNode):
+    if isinstance(tree, LiteralNode) or isinstance(tree, VariableNode):
         return tree
     
     # simplifying operations
@@ -36,6 +36,8 @@ def simplify_tree(tree: Node) -> Node:
             return NumberNode(FUNCS[new_tree.name](eval(str(new_tree.node))))
         
         return new_tree
+    
+    return tree
 
 
 if __name__ == "__main__":

@@ -98,6 +98,10 @@ class Parser:
 			
 			self.advance()
 			return result
+		
+		if token.type == TokenType.CONST:
+			self.advance()
+			return ConstantNode(token.value)
 
 		if token.type == TokenType.NUMBER:
 			self.advance()

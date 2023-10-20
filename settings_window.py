@@ -347,7 +347,18 @@ class SettingsWindow(QMainWindow):
         self.insert_name.adjustSize()
     
     def apply_insert(self):
-        print(self.insert_name.currentText())
+
+        pos = self.expression_line.cursorPosition()
+        exp = self.expression_line.text()
+
+        match (self.insert_type.currentText()):
+            case "Variable" | "Constant":
+                text = self.insert_name.currentText()
+            case "Built-in Function" | "Custom Function":
+                text = self.insert_name.currentText() + "()"
+
+        self.expression_line.setText(exp[:pos] + text + exp[pos:])
+        self.expression_line.setFocus()
     
     def update_scale_display(self):
         self.scale_display.setText("{:.3e}".format(self.get_scale()))

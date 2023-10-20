@@ -4,11 +4,11 @@
             "type": "MultiplyNode",
             "node_a": {
                 "type": "VariableNode",
-                "name": "z"
+                "value": "z"
             },
             "node_b": {
                 "type": "VariableNode",
-                "name": "z"
+                "value": "z"
             }
         }
     },
@@ -25,11 +25,11 @@
                         "type": "MultiplyNode",
                         "node_a": {
                             "type": "VariableNode",
-                            "name": "t"
+                            "value": "t"
                         },
                         "node_b": {
                             "type": "VariableNode",
-                            "name": "z"
+                            "value": "z"
                         }
                     }
                 },

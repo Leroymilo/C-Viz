@@ -1,7 +1,12 @@
-env
-win_env
 *.spec
 *.log
 dist
 build
+
 __pycache__
+.vscode
+*env
+
+tooltip.png
+
+test*

@@ -51,6 +51,7 @@ class RenderWidget(QOpenGLWidget):
         expression = self.settings.expression_line.text()
         try:
             tree = parse_expression(expression)
+            print(tree.tex())
             glsl_expression = simplify_tree(tree).glsl()
         except Exception as e:
             self.settings.error_log.setText(str(e))
