@@ -16,32 +16,32 @@ class Variable:
 
 VARS = {
     "z": Variable(
-        "z", "$z$",
+        "z", "z",
         VariableNode("z"),
         "The main variable of the function."
     ),
     "t": Variable(
-        "t", "$t$",
+        "t", "t",
         VariableNode("t"),
         "A time variable constantly increasing with time (in seconds)."
     ),
     "x": Variable(
-        "x", "$x$",
+        "x", "x",
         FunctionNode("re", VariableNode("z")),
         "The real part of z ($z = x + i y$)."
     ),
     "y": Variable(
-        "y", "$y$",
+        "y", "y",
         FunctionNode("im", VariableNode("z")),
         "The imaginary part of z ($z = x + i y$)."
     ),
     "ρ": Variable(
-        "ρ", "$\\rho$",
+        "ρ", "\\rho",
         FunctionNode("abs", VariableNode("z")),
         "The modulus, or absolute value of z ($z = \\rho e^{i \\theta}$)."
     ),
     "θ": Variable(
-        "θ", "$\\theta$",
+        "θ", "\\theta",
         FunctionNode("arg", VariableNode("z")),
         "The argument of z ($z = \\rho e^{i \\theta}$)."
     )

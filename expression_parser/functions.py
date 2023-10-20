@@ -25,7 +25,7 @@ FUNCS: dict[str,callable] = {
     }
 }
 
-DEF_FUNCS = {}
+DEF_FUNCS: dict[str, Node] = {}
 
 def parse_tree(root_dict: dict) -> Node:
     node_type = root_dict["type"]
@@ -69,7 +69,7 @@ def replace_var(func_tree: Node, param_tree: Node):
 
     kwargs = {}
     for key, value in func_tree.__dict__.items():
-        if isinstance(value, VariableNode) and value.name == 'z':
+        if isinstance(value, VariableNode) and value.value == 'z':
             kwargs[key] = param_tree
         elif isinstance(value, Node):
             kwargs[key] = replace_var(value, param_tree)

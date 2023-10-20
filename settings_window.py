@@ -4,8 +4,11 @@ from PyQt5.QtCore import QPointF, Qt, QSize
 
 from render_window import RenderWindow
 
+from tex_renderer import render_tex
+
 from expression_parser.functions import read_defined_functions
 from expression_parser.lexer import VARS, CONSTS, FUNCS, DEF_FUNCS
+from expression_parser.main import parse_expression
 
 COLORMAPS = [
     {"name": "HSL",   "desc": "Common Hue Saturation Luminosity colormap."},
@@ -53,6 +56,7 @@ class SettingsWindow(QMainWindow):
         self.bind()
         self.refresh()
         self.update_insert_cb()
+        self.update_exp_tex_render()
     
     def expression(self, parent_layout: QLayout):
         parent_layout.addWidget(QLabel("Function expression"))
@@ -82,6 +86,9 @@ class SettingsWindow(QMainWindow):
         self.expression_line = QLineEdit("z^5-1")   # Unit 5th roots
         layout.addWidget(self.expression_line)
 
+        self.tex_label = QLabel()
+        layout.addWidget(self.tex_label)
+
         widget = QWidget()
         widget.setLayout(layout)
         parent_layout.addWidget(widget)
@@ -107,6 +114,7 @@ class SettingsWindow(QMainWindow):
         label = QLabel()
         icon = self.style().standardIcon(QStyle.SP_MessageBoxInformation)
         label.setPixmap(icon.pixmap(QSize(16, 16)))
+        label.setToolTip("<img src=\"tooltip.png\">")
         layout.addWidget(label)
 
         layout.addStretch()
@@ -259,8 +267,10 @@ class SettingsWindow(QMainWindow):
         parent_layout.addWidget(widget)
 
     def bind(self):
+        self.expression_line.textChanged.connect(self.update_exp_tex_render)
         self.expression_line.returnPressed.connect(self.reload_expression)
         self.insert_type.currentIndexChanged.connect(self.update_insert_cb)
+        self.insert_name.currentTextChanged.connect(self.update_insert_desc)
         self.insert.clicked.connect(self.apply_insert)
         self.reload_button.clicked.connect(self.reload_expression)
         self.pos_x.returnPressed.connect(self.refresh)
@@ -331,6 +341,20 @@ class SettingsWindow(QMainWindow):
 
     # UPDATERS ======================================================================================================
 
+    def update_exp_tex_render(self):
+        text = self.expression_line.text()
+        try:
+            tree = parse_expression(text)
+        except Exception as e:
+            return
+        
+        if tree is None: return
+        
+        name = "fz.png"
+        render_tex(f"${tree.tex()}$", name, size=20)
+        pixmap = QPixmap(name)
+        self.tex_label.setPixmap(pixmap)
+
     def update_insert_cb(self):
         self.insert_name.clear()
         
@@ -345,6 +369,23 @@ class SettingsWindow(QMainWindow):
                 self.insert_name.addItems(sorted(DEF_FUNCS.keys()))
         
         self.insert_name.adjustSize()
+    
+    def update_insert_desc(self):
+        desc = "None"
+        name = self.insert_name.currentText()
+        if name :
+
+            match (self.insert_type.currentText()):
+                case "Variable":
+                    desc = VARS[name].desc
+                case "Constant":
+                    desc = CONSTS[name].desc
+                # case "Built-in Function":
+                #     self.insert_name.addItems(sorted(FUNCS.keys()))
+                case "Custom Function":
+                    desc = f"${name}(z) = {DEF_FUNCS[name].tex()}$"
+        
+        render_tex(desc, "tooltip.png")
     
     def apply_insert(self):
 
