@@ -1,7 +1,21 @@
 from matplotlib import use
 import matplotlib.pyplot as plt
 
-use("tkagg")    # avoids Segfault on Fedora for some reason
+
+# activating an option to avoid segfault on some systems
+
+from subprocess import run, CalledProcessError
+
+SEGFAULT_PROCESS_RETURNCODE = -11
+
+try:
+    run(["python3", "-m", "segfaulter.py"], check=True)
+except CalledProcessError as err:
+    if err.returncode == SEGFAULT_PROCESS_RETURNCODE:
+        use("tkagg")    # avoids Segfault on Fedora for some reason
+
+
+# actual renderer
 
 plt.rcParams["mathtext.fontset"] = "cm" # Chooses a nice font for the rendered text
 fig = plt.figure()
