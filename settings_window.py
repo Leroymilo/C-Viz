@@ -381,8 +381,8 @@ class SettingsWindow(QMainWindow):
                     desc = VARS[name].desc
                 case "Constant":
                     desc = CONSTS[name].desc
-                # case "Built-in Function":
-                #     self.insert_name.addItems(sorted(FUNCS.keys()))
+                case "Built-in Function":
+                    desc = FUNCS[name].__doc__
                 case "Custom Function":
                     desc = f"${name}(z) = {DEF_FUNCS[name].tex()}$"
         

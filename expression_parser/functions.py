@@ -10,11 +10,25 @@ def true_phase(z: complex) -> float:
         return p + 2 * pi
     return p
 
+true_phase.__doc__ = phase.__doc__ + " The result will be in [0, 2π[."
+
+def real(z: complex) -> float:
+    """Return the real part of z."""
+    return z.real
+
+def imag(z: complex) -> float:
+    """Return the imaginary part of z."""
+    return z.imag
+
+def conj(z: complex) -> float:
+    """Return the conjugate of z (i.e. Re(z) - i*Im(z))."""
+    return z.conjugate()
+
 FUNCS: dict[str,callable] = {
-	"re": (lambda z: z.real),
-    "im": (lambda z: z.imag),
-    "conj": (lambda z: z.real - 1j * z.imag),
-    "arg": (lambda z: true_phase(z))
+	"re": real,
+    "im": imag,
+    "conj": conj,
+    "arg": true_phase
 } | {
     # direct cmath functions :
     f.__name__: f
