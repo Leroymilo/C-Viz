@@ -9,8 +9,6 @@ def parse_expression(expression: str) -> Node:
     return Parser(Lexer(expression).generate_tokens()).parse()
 
 def simplify_tree(tree: Node) -> Node:
-    # If strength == 0: NumberNodes will be merged by operations and functions.
-    # If strength == 1: ConstantNodes will be merged too.
 
     to_merge = LiteralNode
 

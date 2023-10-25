@@ -9,6 +9,17 @@ WHITESPACE = " \n\t"
 DIGITS = "0123456789"
 CHARS = "abcdefghijklmnopqrstuvwxyz_ρθ"
 
+SIMPLETOKENS = {
+	'+': TokenType.PLUS,
+	'-': TokenType.MINUS,
+	'*': TokenType.MULTIPLY,
+	'/': TokenType.DIVIDE,
+	'^': TokenType.POWER,
+	'(': TokenType.LPAREN,
+	')': TokenType.RPAREN,
+	',': TokenType.COMA
+}
+
 class Lexer:
 	def __init__(self, text: str):
 		self.text = iter(text.lower())
@@ -28,29 +39,14 @@ class Lexer:
 				yield self.generate_number()
 			elif self.current_char in CHARS:
 				yield self.generate_str()
-			elif self.current_char == '+':
-				self.advance()
-				yield Token(TokenType.PLUS)
-			elif self.current_char == '-':
-				self.advance()
-				yield Token(TokenType.MINUS)
-			elif self.current_char == '*':
-				self.advance()
-				yield Token(TokenType.MULTIPLY)
-			elif self.current_char == '/':
-				self.advance()
-				yield Token(TokenType.DIVIDE)
-			elif self.current_char == '^':
-				self.advance()
-				yield Token(TokenType.POWER)
-			elif self.current_char == '(':
-				self.advance()
-				yield Token(TokenType.LPAREN)
-			elif self.current_char == ')':
-				self.advance()
-				yield Token(TokenType.RPAREN)
 			else:
-				raise Exception(f"Illegal character '{self.current_char}'")
+				for char, token_type in SIMPLETOKENS.items():
+					if self.current_char == char:
+						yield Token(token_type)
+						self.advance()
+						break
+				else:
+					raise Exception(f"Illegal character '{self.current_char}'")
 
 	def generate_number(self):
 		decimal_point_count = 0

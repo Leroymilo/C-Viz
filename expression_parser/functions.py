@@ -1,7 +1,60 @@
 from cmath import *
 from json import load, dump
+from typing import Callable, Sequence
 
 from expression_parser.nodes import *
+
+TYPES = {complex: 'z', float: 'x', int: 'n'}
+
+@dataclass
+class Function:
+    name: str
+    func: Callable
+    arg_types: Sequence[type]
+    ret_type: type
+    desc: str
+
+    def get_args(self) -> tuple[str]:
+        if hasattr(self, "arg_names"):
+            return self.arg_names
+        
+        CNT = {
+            type_: self.arg_types.count(type_)
+            for type_ in TYPES
+        }
+
+        i_t = {type_: 1 for type_ in TYPES}
+
+        args = []
+
+        for type_arg in self.arg_types:
+            for type_, var in TYPES.items():
+                if type_arg is not type_: continue
+                if CNT[type_] > 1:
+                    var += '_' + str(i_t[type_])
+                    i_t[type_] += 1
+                args.append(var)
+                break
+        
+        self.arg_names = tuple(args)
+        return self.arg_names
+
+    def __repr__(self) -> str:
+        return f"{self.name}({", ".join(self.get_args())}) -> {self.ret_type.__name__}"
+
+    def eval(self, *args):
+        return self.func(*args)
+    
+    def get_desc(self):
+        return self.desc
+
+@dataclass
+class CustomFunction:
+    name: str
+    func: Node
+    arg_types: Sequence[type]
+    ret_types: type
+    desc: str
 
 def true_phase(z: complex) -> float:
     # result in [0, 2pi]
@@ -9,8 +62,6 @@ def true_phase(z: complex) -> float:
     if p < 0:
         return p + 2 * pi
     return p
-
-true_phase.__doc__ = phase.__doc__ + " The result will be in [0, 2π[."
 
 def real(z: complex) -> float:
     """Return the real part of z."""
@@ -20,20 +71,27 @@ def imag(z: complex) -> float:
     """Return the imaginary part of z."""
     return z.imag
 
-def conj(z: complex) -> float:
-    """Return the conjugate of z (i.e. Re(z) - i*Im(z))."""
+def conj(z: complex) -> complex:
+    """Return the conjugate of z (i.e. $Re(z) - i\\cdot Im(z)$)."""
     return z.conjugate()
+
+def exp_(z: complex) -> complex:
+    "Return the exponential value $e^z$."
+    return exp(z)
+
+true_phase.__doc__ = phase.__doc__ + " The result will be in $[0, 2π[$."
 
 FUNCS: dict[str,callable] = {
 	"re": real,
     "im": imag,
     "conj": conj,
-    "arg": true_phase
+    "arg": true_phase,
+    "exp": exp_
 } | {
     # direct cmath functions :
     f.__name__: f
     for f in {
-        abs, exp, log, log10, sqrt,
+        abs, log, log10, sqrt,
         sin, cos, tan, asin, acos, atan,
         sinh, cosh, tanh, asinh, acosh, atanh
     }

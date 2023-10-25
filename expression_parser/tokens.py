@@ -16,6 +16,7 @@ class TokenType(Enum):
 	LPAREN    	= 8
 	RPAREN    	= 9
 	FUNC		= 10
+	COMA		= 11
 
 @dataclass
 class Token:

@@ -4,11 +4,17 @@ from PyQt5.QtCore import QPointF, Qt, QSize
 
 from render_window import RenderWindow
 
+print("Setting up LateX renderer...")
 from tex_renderer import render_tex
+print("LateX renderer ready!")
 
-from expression_parser.functions import read_defined_functions
 from expression_parser.lexer import VARS, CONSTS, FUNCS, DEF_FUNCS
 from expression_parser.main import parse_expression
+
+print("Importing saved functions...")
+from expression_parser.functions import read_defined_functions
+read_defined_functions()
+print("Saved functions imported!")
 
 COLORMAPS = [
     {"name": "HSL",   "desc": "Common Hue Saturation Luminosity colormap."},
@@ -16,24 +22,22 @@ COLORMAPS = [
 ]
 
 STYLELINES = [
-    {"name": "Re(f(z))",  "defK": 0,   "minK": -100, "maxK": 100, "map": lambda x: 10 ** (-x/10)},
-    {"name": "Im(f(z))",  "defK": 0,   "minK": -100, "maxK": 100, "map": lambda x: 10 ** (-x/10)},
+    {"name": "Re(f(z))",  "defK": 0,   "minK": -100, "maxK": 100, "map": lambda x: 10 ** (x/10)},
+    {"name": "Im(f(z))",  "defK": 0,   "minK": -100, "maxK": 100, "map": lambda x: 10 ** (x/10)},
     {"name": "|f(z)|",    "defK": 0,   "minK": -100, "maxK": 100, "map": lambda x: 10 ** (-x/10)},
     {"name": "arg(f(z))", "defK": 179, "minK": 5,    "maxK": 180, "map": lambda x: 185 - x},
 ]
-
-read_defined_functions()
 
 
 class SettingsWindow(QMainWindow):
 
     # INITIALIZATION ================================================================================================
 
-    def __init__(self, render: RenderWindow) -> None:
+    def __init__(self) -> None:
         super().__init__()
-        self.render_window = render
-        self.openGL_widget = render.render_widget
-        render.render_widget.settings = self
+        self.render_window = RenderWindow()
+        self.openGL_widget = self.render_window.render_widget
+        self.openGL_widget.settings = self
 
         self.setWindowTitle("Settings")
 
@@ -83,7 +87,7 @@ class SettingsWindow(QMainWindow):
 
         layout.addWidget(QLabel("f(z) = "))
 
-        self.expression_line = QLineEdit("z^5-1")   # Unit 5th roots
+        self.expression_line = QLineEdit("z^5 + (2*oscil01(1)-1)")   # Unit 5th roots
         layout.addWidget(self.expression_line)
 
         self.tex_label = QLabel()
@@ -410,7 +414,6 @@ class SettingsWindow(QMainWindow):
 
     def reload_expression(self):
         self.openGL_widget.load_shader_code()
-        self.render_window.setWindowTitle(self.expression_line.text())
         self.refresh()
     
     def refresh(self):
@@ -420,6 +423,11 @@ class SettingsWindow(QMainWindow):
 
 
     # BUILTIN EVENTS ================================================================================================
+    
+    def show(self) -> None:
+        # Opens both windows
+        self.render_window.showMaximized()
+        return super().show()
     
     def closeEvent(self, event: QCloseEvent) -> None:
         # Closes both windows

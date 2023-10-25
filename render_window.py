@@ -51,12 +51,11 @@ class RenderWidget(QOpenGLWidget):
         expression = self.settings.expression_line.text()
         try:
             tree = parse_expression(expression)
-            print(tree.tex())
             glsl_expression = simplify_tree(tree).glsl()
         except Exception as e:
             self.settings.error_log.setText(str(e))
             print(format_exc())
-            return
+            return 1
         
         self.settings.error_log.setText("All good!")
 
@@ -76,6 +75,7 @@ class RenderWidget(QOpenGLWidget):
         
         # reset timer for consistency
         self.start = QDateTime.currentMSecsSinceEpoch()
+        return 0
 
     def initializeGL(self):
         self.ctx = moderngl.create_context(require=450)
@@ -87,7 +87,9 @@ class RenderWidget(QOpenGLWidget):
             1.0, -1.0, 1.0, -1.0,   # bottomright
         ]))
 
-        self.load_shader_code()
+        exit_code = self.load_shader_code()
+        if exit_code:
+            raise Exception("Error while parsing expression or compiling shader code.")
 
     def paintGL(self):
         params = {}

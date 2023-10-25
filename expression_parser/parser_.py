@@ -72,22 +72,30 @@ class Parser:
 		if token.type == TokenType.FUNC:
 			self.advance()
 
+			args = []
+
 			if self.current_token.type != TokenType.LPAREN:
 				self.raise_error()
 			self.advance()
-			result = self.expr()
 
-			if self.current_token.type != TokenType.RPAREN:
-				self.raise_error()
-			
+			while self.current_token.type != TokenType.RPAREN:
+				args.append(self.expr())
+				
+				if self.current_token.type not in {TokenType.RPAREN, TokenType.COMA}:
+					self.raise_error()
+
+				if self.current_token.type == TokenType.COMA:
+					self.advance()
 			self.advance()
+
+			# TODO : handle multiple variable functions
 
 			if token.value not in FUNCS.keys():
 				# custom defined function, replace var with result node
-				return replace_var(DEF_FUNCS[token.value], result)
+				return replace_var(DEF_FUNCS[token.value], args[0])
 			
 			# built in function
-			return FunctionNode(token.value, result)
+			return FunctionNode(token.value, args[0])
 
 		if token.type == TokenType.LPAREN:
 			self.advance()
