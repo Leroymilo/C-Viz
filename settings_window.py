@@ -288,11 +288,7 @@ class SettingsWindow(QMainWindow):
         for i in range(4):
             self.style_lines_checkboxes[i].stateChanged.connect(self.refresh)
             self.style_lines_sliders[i].valueChanged.connect(self.refresh)
-        # The loop put every call to self.reset_style_line(3) for some reason
-        self.style_lines_resets[0].clicked.connect(lambda : self.reset_style_line(0))
-        self.style_lines_resets[1].clicked.connect(lambda : self.reset_style_line(1))
-        self.style_lines_resets[2].clicked.connect(lambda : self.reset_style_line(2))
-        self.style_lines_resets[3].clicked.connect(lambda : self.reset_style_line(3))
+            self.style_lines_resets[i].clicked.connect(lambda state, x=i: self.reset_style_line(x))
     
 
     # RESETS ========================================================================================================
